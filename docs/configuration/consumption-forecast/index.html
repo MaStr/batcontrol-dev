@@ -2192,9 +2192,9 @@ INFO [FC Cons] The hourly values from the load profile are scaled with a factor 
 <span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span><span class="w">   </span><span class="c1"># Your HomeAssistant URL</span>
 <span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_LONG_LIVED_ACCESS_TOKEN</span><span class="w">     </span><span class="c1"># Long-Lived Access Token</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span><span class="w">        </span><span class="c1"># Entity ID with consumption data</span>
-<span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span><span class="w">                           </span><span class="c1"># Options: &#39;auto&#39;, &#39;Wh&#39;, or &#39;kWh&#39; (since 0.5.7)</span>
-<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-7;-14;-21&quot;</span><span class="w">               </span><span class="c1"># Days to look back (negative values)</span>
-<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1;1;1&quot;</span><span class="w">                 </span><span class="c1"># Weight for each history period (1-10)</span>
+<span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span><span class="w">                           </span><span class="c1"># Options: 'auto', 'Wh', or 'kWh' (since 0.5.7)</span>
+<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span><span class="w">               </span><span class="c1"># Days to look back (negative values)</span>
+<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"1;1;1"</span><span class="w">                 </span><span class="c1"># Weight for each history period (1-10)</span>
 <span class="w">    </span><span class="nt">cache_ttl_hours</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">48.0</span><span class="w">                      </span><span class="c1"># Cache duration in hours</span>
 <span class="w">    </span><span class="nt">multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">                             </span><span class="c1"># Forecast adjustment multiplier</span>
 </code></pre></div>
@@ -2319,12 +2319,12 @@ INFO [FC Cons] The hourly values from the load profile are scaled with a factor 
 <li>State:</li>
 </ul>
 <p><div class="highlight"><pre><span></span><code><span class="p p-Indicator">{{</span>
-<span class="nv">states(&#39;sensor.smartmeter_ac_meter_total_watt_hours_imported&#39;) | float -</span>
-<span class="nv">states(&#39;sensor.smartmeter_ac_meter_total_watt_hours_exported&#39;) | float +</span><span class="w"> </span>
-<span class="nv">(states(&#39;sensor.inverter_mppt_module_0_lifetime_energy&#39;) | float +</span><span class="w"> </span>
-<span class="nv">states(&#39;sensor.inverter_mppt_module_1_lifetime_energy&#39;) | float +</span><span class="w"> </span>
-<span class="nv">states(&#39;sensor.inverter_mppt_module_3_lifetime_energy&#39;) | float -</span><span class="w"> </span>
-<span class="nv">states(&#39;sensor.inverter_mppt_module_2_lifetime_energy&#39;) | float)</span>
+<span class="nv">states('sensor.smartmeter_ac_meter_total_watt_hours_imported') | float -</span>
+<span class="nv">states('sensor.smartmeter_ac_meter_total_watt_hours_exported') | float +</span><span class="w"> </span>
+<span class="nv">(states('sensor.inverter_mppt_module_0_lifetime_energy') | float +</span><span class="w"> </span>
+<span class="nv">states('sensor.inverter_mppt_module_1_lifetime_energy') | float +</span><span class="w"> </span>
+<span class="nv">states('sensor.inverter_mppt_module_3_lifetime_energy') | float -</span><span class="w"> </span>
+<span class="nv">states('sensor.inverter_mppt_module_2_lifetime_energy') | float)</span>
 <span class="p p-Indicator">}}</span>
 </code></pre></div>
 - Unit of measurement: <code>kWh</code>
@@ -2333,20 +2333,20 @@ INFO [FC Cons] The hourly values from the load profile are scaled with a factor 
 <h3 id="how-history-weights-work">How History Weights Work<a class="headerlink" href="#how-history-weights-work" title="Permanent link">&para;</a></h3>
 <p>The <code>history_weights</code> parameter allows you to give more importance to recent data vs. older data.</p>
 <p><strong>Example 1: Equal weighting</strong>
-<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-7;-14;-21&quot;</span>
-<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1;1;1&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span>
+<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"1;1;1"</span>
 </code></pre></div>
 All three weeks have equal influence (33.3% each).</p>
 <p><strong>Example 2: Recent data preferred</strong>
-<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-7;-14;-21&quot;</span>
-<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3;2;1&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span>
+<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"3;2;1"</span>
 </code></pre></div>
 - Last week: 50% influence (3/6)
 - Two weeks ago: 33% influence (2/6)
 - Three weeks ago: 17% influence (1/6)</p>
 <p><strong>Example 3: Short-term forecast</strong>
-<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-1;-2;-3&quot;</span>
-<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3;2;1&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-1;-2;-3"</span>
+<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"3;2;1"</span>
 </code></pre></div>
 Uses only the last 3 days for very dynamic forecasting.</p>
 <h3 id="multiplier-for-forecast-adjustment">Multiplier for Forecast Adjustment<a class="headerlink" href="#multiplier-for-forecast-adjustment" title="Permanent link">&para;</a></h3>
@@ -2386,9 +2386,9 @@ Uses only the last 3 days for very dynamic forecasting.</p>
 python<span class="w"> </span>test_homeassistant_forecast.py
 </code></pre></div>
 <p>Edit the configuration section in the script:</p>
-<div class="highlight"><pre><span></span><code><span class="n">HOMEASSISTANT_URL</span> <span class="o">=</span> <span class="s2">&quot;ws://homeassistant.local:8123&quot;</span>
-<span class="n">HOMEASSISTANT_TOKEN</span> <span class="o">=</span> <span class="s2">&quot;YOUR_LONG_LIVED_ACCESS_TOKEN&quot;</span>
-<span class="n">ENTITY_ID</span> <span class="o">=</span> <span class="s2">&quot;sensor.energy_consumption&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">HOMEASSISTANT_URL</span> <span class="o">=</span> <span class="s2">"ws://homeassistant.local:8123"</span>
+<span class="n">HOMEASSISTANT_TOKEN</span> <span class="o">=</span> <span class="s2">"YOUR_LONG_LIVED_ACCESS_TOKEN"</span>
+<span class="n">ENTITY_ID</span> <span class="o">=</span> <span class="s2">"sensor.energy_consumption"</span>
 <span class="n">HISTORY_DAYS</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">7</span><span class="p">,</span> <span class="o">-</span><span class="mi">14</span><span class="p">,</span> <span class="o">-</span><span class="mi">21</span><span class="p">]</span>
 <span class="n">HISTORY_WEIGHTS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 </code></pre></div>
@@ -2420,7 +2420,7 @@ This error occurs when your HomeAssistant instance has many entities (sensors, l
 <span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
 <span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_TOKEN</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
-<span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kWh</span><span class="w">  </span><span class="c1"># or &#39;Wh&#39; depending on your sensor</span>
+<span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kWh</span><span class="w">  </span><span class="c1"># or 'Wh' depending on your sensor</span>
 </code></pre></div></p>
 <p><strong>How to determine your sensor unit:</strong>
 1. Open HomeAssistant → Developer Tools → States
@@ -2442,8 +2442,8 @@ This error occurs when your HomeAssistant instance has many entities (sensors, l
 - Check firewall rules</p>
 <p><strong>Problem:</strong> "Length of history_days must match history_weights"</p>
 <p><strong>Solution:</strong> Ensure both lists have the same number of elements:
-<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-7;-14;-21&quot;</span><span class="w">      </span><span class="c1"># 3 elements</span>
-<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3;2;1&quot;</span><span class="w">         </span><span class="c1"># 3 elements</span>
+<div class="highlight"><pre><span></span><code><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span><span class="w">      </span><span class="c1"># 3 elements</span>
+<span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"3;2;1"</span><span class="w">         </span><span class="c1"># 3 elements</span>
 </code></pre></div></p>
 <p><strong>Problem:</strong> "History weights must be between 1 and 10"</p>
 <p><strong>Solution:</strong> Use only values from 1 to 10 in <code>history_weights</code>.</p>
@@ -2564,8 +2564,8 @@ Batcontrol automatically detects whether your sensor reports in Wh or kWh and ap
 <span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.house_energy_total</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span><span class="w">  </span><span class="c1"># Auto-detect (default)</span>
-<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-7;-14;-21&quot;</span>
-<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1;1;1&quot;</span>
+<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span>
+<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"1;1;1"</span>
 <span class="w">    </span><span class="nt">cache_ttl_hours</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">48.0</span>
 <span class="w">    </span><span class="nt">multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 </code></pre></div>
@@ -2577,8 +2577,8 @@ Batcontrol automatically detects whether your sensor reports in Wh or kWh and ap
 <span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_token_here</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kWh</span><span class="w">  </span><span class="c1"># Explicit unit - faster startup, no auto-detection needed</span>
-<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-7;-14;-21&quot;</span>
-<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3;2;1&quot;</span><span class="w">  </span><span class="c1"># Recent week has most influence</span>
+<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span>
+<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"3;2;1"</span><span class="w">  </span><span class="c1"># Recent week has most influence</span>
 <span class="w">    </span><span class="nt">cache_ttl_hours</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">24.0</span>
 <span class="w">    </span><span class="nt">multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.1</span><span class="w">  </span><span class="c1"># Increase forecast by 10%</span>
 </code></pre></div>
@@ -2590,8 +2590,8 @@ Batcontrol automatically detects whether your sensor reports in Wh or kWh and ap
 <span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_token_here</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Wh</span><span class="w">  </span><span class="c1"># Explicit unit for optimal performance</span>
-<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-1;-2;-3&quot;</span><span class="w">  </span><span class="c1"># Only last 3 days</span>
-<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5;3;2&quot;</span><span class="w">   </span><span class="c1"># Yesterday has most weight</span>
+<span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-1;-2;-3"</span><span class="w">  </span><span class="c1"># Only last 3 days</span>
+<span class="w">    </span><span class="nt">history_weights</span><span class="p">:</span><span class="w"> </span><span class="s">"5;3;2"</span><span class="w">   </span><span class="c1"># Yesterday has most weight</span>
 <span class="w">    </span><span class="nt">cache_ttl_hours</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12.0</span><span class="w">        </span><span class="c1"># Shorter cache</span>
 <span class="w">    </span><span class="nt">multiplier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 </code></pre></div>

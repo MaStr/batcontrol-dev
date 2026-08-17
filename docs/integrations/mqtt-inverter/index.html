@@ -1845,48 +1845,48 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="c1"># Configuration</span>
-<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">&quot;192.168.1.100&quot;</span>
+<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">"192.168.1.100"</span>
 <span class="n">MQTT_PORT</span> <span class="o">=</span> <span class="mi">1883</span>
-<span class="n">MQTT_USER</span> <span class="o">=</span> <span class="s2">&quot;batcontrol&quot;</span>
-<span class="n">MQTT_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;secret&quot;</span>
-<span class="n">BASE_TOPIC</span> <span class="o">=</span> <span class="s2">&quot;batcontrol/inverters/0&quot;</span>
+<span class="n">MQTT_USER</span> <span class="o">=</span> <span class="s2">"batcontrol"</span>
+<span class="n">MQTT_PASSWORD</span> <span class="o">=</span> <span class="s2">"secret"</span>
+<span class="n">BASE_TOPIC</span> <span class="o">=</span> <span class="s2">"batcontrol/inverters/0"</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">on_connect</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">rc</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Called when connected to MQTT broker&quot;&quot;&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Connected with result code </span><span class="si">{</span><span class="n">rc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Called when connected to MQTT broker"""</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Connected with result code </span><span class="si">{</span><span class="n">rc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Publish initial state (RETAINED)</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/capacity&quot;</span><span class="p">,</span> <span class="s2">&quot;10000&quot;</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/min_soc&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/max_soc&quot;</span><span class="p">,</span> <span class="s2">&quot;100&quot;</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/max_charge_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;5000&quot;</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/capacity"</span><span class="p">,</span> <span class="s2">"10000"</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/min_soc"</span><span class="p">,</span> <span class="s2">"5"</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/max_soc"</span><span class="p">,</span> <span class="s2">"100"</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/max_charge_rate"</span><span class="p">,</span> <span class="s2">"5000"</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Subscribe to commands</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/#&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subscribed to </span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/#&quot;</span><span class="p">)</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/#"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Subscribed to </span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/#"</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">on_message</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle incoming commands from batcontrol&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Handle incoming commands from batcontrol"""</span>
     <span class="n">topic</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">topic</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Received: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">topic</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/mode&quot;</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting mode to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">topic</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/mode"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Setting mode to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="c1"># TODO: Implement your inverter control here</span>
         <span class="c1"># Examples:</span>
         <span class="c1"># - force_charge: Enable grid charging</span>
         <span class="c1"># - allow_discharge: Normal operation</span>
         <span class="c1"># - avoid_discharge: Prevent battery discharge</span>
 
-    <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/charge_rate&quot;</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Setting charge rate to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">W&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/charge_rate"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Setting charge rate to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">W"</span><span class="p">)</span>
         <span class="c1"># TODO: Implement your charge rate control here</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">publish_soc</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">soc_value</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Publish current State of Charge&quot;&quot;&quot;</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/soc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">soc_value</span><span class="p">))</span>
+<span class="w">    </span><span class="sd">"""Publish current State of Charge"""</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/soc"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">soc_value</span><span class="p">))</span>
 
 <span class="c1"># Create MQTT client</span>
 <span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
@@ -1910,7 +1910,7 @@
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># Update every 60 seconds</span>
 
 <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutting down...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Shutting down..."</span><span class="p">)</span>
     <span class="n">client</span><span class="o">.</span><span class="n">loop_stop</span><span class="p">()</span>
     <span class="n">client</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
 </code></pre></div>

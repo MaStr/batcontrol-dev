@@ -1740,7 +1740,7 @@
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Peak shaving was introduced with 0.8.0 and is only available with the <strong><code>next</code> logic type</strong>. Set this in the <code>battery_control</code> section of your configuration:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">battery_control</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">next</span><span class="w">   </span><span class="c1"># Required -- &#39;default&#39; does not include peak shaving</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">next</span><span class="w">   </span><span class="c1"># Required -- 'default' does not include peak shaving</span>
 </code></pre></div>
 <p>The <code>default</code> logic type does not support peak shaving at all. Enabling peak shaving without switching to <code>next</code> has no effect.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
@@ -1751,7 +1751,7 @@
 <span class="w">  </span><span class="nt">price_active</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">              </span><span class="c1"># price rule enabled</span>
 <span class="w">  </span><span class="nt">solar_cap_active</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">         </span><span class="c1"># solar feed-in limit rule (German Solarspitzengesetz)</span>
 <span class="w">  </span><span class="nt">allow_full_battery_after</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">14</span><span class="w">    </span><span class="c1"># Hour (0-23) -- battery should be full by this hour</span>
-<span class="w">  </span><span class="nt">price_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span><span class="w">               </span><span class="c1"># Euro/kWh -- slots at or below this price are &quot;cheap&quot;</span>
+<span class="w">  </span><span class="nt">price_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span><span class="w">               </span><span class="c1"># Euro/kWh -- slots at or below this price are "cheap"</span>
 <span class="w">  </span><span class="nt">feed_in_limit_w</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">              </span><span class="c1"># Watt -- feed-in power limit (0 = off); formula: 0.6 * kWp * 1000</span>
 <span class="w">  </span><span class="nt">feed_in_limit_headroom</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">     </span><span class="c1"># Safety factor &gt;= 1.0 (recommended 1.1 if underestimated)</span>
 </code></pre></div>

@@ -951,6 +951,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#grid-charge-lock-external-hemsgrid-operator-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid Charge Lock (external HEMS/grid operator signal)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1569,6 +1580,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#grid-charge-lock-external-hemsgrid-operator-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid Charge Lock (external HEMS/grid operator signal)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2054,6 +2076,46 @@
 </tr>
 </tbody>
 </table>
+<h3 id="grid-charge-lock-external-hemsgrid-operator-signal">Grid Charge Lock (external HEMS/grid operator signal)<a class="headerlink" href="#grid-charge-lock-external-hemsgrid-operator-signal" title="Permanent link">&para;</a></h3>
+<p>Some grid operators (in Germany: section 14a EnWG) or home energy management
+systems (HEMS) can request that controllable consumption devices stop drawing
+power from the grid. Batcontrol can listen to a single external MQTT topic for
+this signal. It mirrors evcc's
+<a href="https://docs.evcc.io/en/user-defined-devices/#external-limit">External Limit</a>
+convention.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mqtt</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">grid_charge_lock_topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hems/batcontrol/grid_charge_lock</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>grid_charge_lock_topic</code></td>
+<td>string</td>
+<td>—</td>
+<td>Optional. Full/absolute topic (not nested below <code>topic</code>) published by an external system.</td>
+</tr>
+</tbody>
+</table>
+<p>Payload semantics (case-insensitive):</p>
+<ul>
+<li><code>1</code> or <code>true</code> - Immediately block charging from the grid. The current
+  <code>max_charging_from_grid_limit</code> is remembered and forced to <code>0</code>; an active
+  forced grid charge (<code>mode</code> <code>-1</code>) is cancelled right away.</li>
+<li><code>0</code> or <code>false</code> (default) - Restore the previously remembered
+  <code>max_charging_from_grid_limit</code>.</li>
+</ul>
+<p>The current lock state is published (retained) to <code>house/batcontrol/grid_charge_locked</code>.</p>
+<p>This only blocks <em>charging from the grid</em>; PV charging and battery discharging
+are not affected.</p>
 <h2 id="home-assistant-auto-discovery">Home Assistant Auto-Discovery<a class="headerlink" href="#home-assistant-auto-discovery" title="Permanent link">&para;</a></h2>
 <p>Batcontrol supports Home Assistant's MQTT auto-discovery feature, which automatically creates entities in Home Assistant without manual configuration.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">mqtt</span><span class="p">:</span>
@@ -2108,6 +2170,7 @@
 <li><code>house/batcontrol/discharge_blocked</code> - Whether discharge is blocked (<code>true</code>/<code>false</code>)</li>
 <li><code>house/batcontrol/api_override_active</code> - Whether a temporary external/API override is active (<code>true</code>/<code>false</code>)</li>
 <li><code>house/batcontrol/control_source</code> - Source that last selected the current control state (<code>api</code> or <code>optimizer</code>)</li>
+<li><code>house/batcontrol/grid_charge_locked</code> - Whether an external (HEMS/grid operator) request is currently blocking charging from the grid (<code>true</code>/<code>false</code>), see <a href="#grid-charge-lock-external-hemsgrid-operator-signal">Grid Charge Lock</a></li>
 </ul>
 <h3 id="battery-information">Battery Information<a class="headerlink" href="#battery-information" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2215,18 +2278,18 @@ see the Forecast Data Format section below.</p>
 <h2 id="forecast-data-format">Forecast Data Format<a class="headerlink" href="#forecast-data-format" title="Permanent link">&para;</a></h2>
 <p>The forecast topics (<code>/FCST/*</code>) publish JSON data with the following structure:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;time_start&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1696435200</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">625.1</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;power_w&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2500.5</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;time_end&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1696436100</span>
+<span class="w">      </span><span class="nt">"time_start"</span><span class="p">:</span><span class="w"> </span><span class="mi">1696435200</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">625.1</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"power_w"</span><span class="p">:</span><span class="w"> </span><span class="mf">2500.5</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"time_end"</span><span class="p">:</span><span class="w"> </span><span class="mi">1696436100</span>
 <span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;time_start&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1696436100</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">800.0</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;power_w&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3200.0</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;time_end&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1696436999</span>
+<span class="w">      </span><span class="nt">"time_start"</span><span class="p">:</span><span class="w"> </span><span class="mi">1696436100</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">800.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"power_w"</span><span class="p">:</span><span class="w"> </span><span class="mf">3200.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"time_end"</span><span class="p">:</span><span class="w"> </span><span class="mi">1696436999</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
