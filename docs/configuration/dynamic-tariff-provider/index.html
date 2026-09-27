@@ -1674,8 +1674,9 @@ hours.</p>
 <p>The charge rate is not evenly distributed across low-price hours by default.</p>
 <ul>
 <li>For <strong>more even charging</strong> across low-price hours, enable
-  <code>soften_price_difference_on_charging</code> and set <code>max_grid_charge_rate</code> to a
-  modest value (e.g. battery capacity / low-price hours).</li>
+  <code>soften_price_difference_on_charging</code>. With the charging window
+  (<code>spread_grid_charge_over_charge_window</code>, enabled by default) the charge
+  rate is spread over all remaining slots of the low-price block.</li>
 <li>For a <strong>late charging start</strong> (optimise efficiency, keep the battery at
   high SOC for less time), disable <code>soften_price_difference_on_charging</code>.</li>
 </ul>
