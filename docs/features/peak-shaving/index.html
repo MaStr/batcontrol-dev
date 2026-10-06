@@ -1844,7 +1844,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Deprecated:</strong> The old <code>mode</code> parameter (<code>time</code> / <code>price</code> / <code>combined</code>) is still accepted for backward compatibility and mapped to the switches at startup; a deprecation warning is logged. New configurations should use the switch-based design above.</p>
+<p><strong>Removed in 0.10.0:</strong> The old <code>mode</code> parameter (<code>time</code> / <code>price</code> / <code>combined</code>) is no longer supported; a configuration containing it is rejected at startup. Use the switches above instead (<code>time</code> = <code>time_active</code> only, <code>price</code> = <code>price_active</code> only, <code>combined</code> = both).</p>
 <h3 id="mqtt-runtime-control">MQTT Runtime Control<a class="headerlink" href="#mqtt-runtime-control" title="Permanent link">&para;</a></h3>
 <p>The following parameters can be changed at runtime via MQTT without restarting batcontrol:</p>
 <table>
@@ -1870,11 +1870,6 @@
 <td><code>{base}/peak_shaving/price_limit/set</code></td>
 <td>float</td>
 <td>Change the price threshold for the price rule</td>
-</tr>
-<tr>
-<td><code>{base}/peak_shaving/mode/set</code></td>
-<td><code>time</code> / <code>price</code> / <code>combined</code></td>
-<td>Deprecated: kept for backward compatibility, mapped onto <code>time_active</code>/<code>price_active</code></td>
 </tr>
 </tbody>
 </table>
@@ -1940,11 +1935,10 @@ If pv_surplus &gt; free_capacity:
 - If surplus fits in free capacity, no limit is applied.</p>
 <h3 id="combining-rules">Combining Rules<a class="headerlink" href="#combining-rules" title="Permanent link">&para;</a></h3>
 <p>When multiple rules are active, the <strong>strictest (lowest non-negative) limit wins</strong>. For example, if the time rule suggests 500 W and the price rule suggests 300 W, the applied limit is 300 W. This conservative approach prioritizes the rules in combination rather than overriding each other.</p>
-<p><strong>Backward compatibility:</strong> the old <code>mode</code> parameter (<code>time</code> / <code>price</code> / <code>combined</code>) is still accepted and mapped to the switches at startup:
+<p><strong>Migration:</strong> the old <code>mode</code> parameter was removed in 0.10.0. Replace it with the switches:
 - <code>mode: time</code> → <code>time_active: true</code>, <code>price_active: false</code>
 - <code>mode: price</code> → <code>time_active: false</code>, <code>price_active: true</code>
 - <code>mode: combined</code> → <code>time_active: true</code>, <code>price_active: true</code></p>
-<p>New configurations should use the switch-based design.</p>
 <h2 id="solar-feed-in-limit-solarspitzengesetz">Solar Feed-in Limit (Solarspitzengesetz)<a class="headerlink" href="#solar-feed-in-limit-solarspitzengesetz" title="Permanent link">&para;</a></h2>
 <h3 id="the-german-60-rule">The German 60% Rule<a class="headerlink" href="#the-german-60-rule" title="Permanent link">&para;</a></h3>
 <p>The German "Solarspitzengesetz" (in force since 2025-02-25) limits uncontrolled PV plants to feeding at most <strong>60% of their installed power</strong> into the grid. The inverter enforces this limit hard: production above it is <strong>curtailed and lost</strong>, unless self-consumed or charged into the battery.</p>

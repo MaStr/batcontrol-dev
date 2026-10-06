@@ -1667,8 +1667,8 @@ harmful move is filling capacity with exportable energy.</p>
 <h2 id="configuration-design-one-switch-per-rule">Configuration design: one switch per rule<a class="headerlink" href="#configuration-design-one-switch-per-rule" title="Permanent link">&para;</a></h2>
 <p>With three rule flavors (target time, price, solar) the previous <code>mode</code> string
 (<code>time</code>/<code>price</code>/<code>combined</code>) becomes confusing. Agreed design: <strong>one explicit switch
-per rule</strong>; <code>mode</code> is deprecated and mapped onto the switches at load time
-(<code>time</code> -&gt; <code>time_active</code>, <code>price</code> -&gt; <code>price_active</code>, <code>combined</code> -&gt; both):</p>
+per rule</strong>; <code>mode</code> was removed in 0.10.0 (migration: <code>time</code> -&gt; <code>time_active</code>,
+<code>price</code> -&gt; <code>price_active</code>, <code>combined</code> -&gt; both):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">peak_shaving</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                 </span><span class="c1"># master switch (as today, incl. evcc override)</span>
 <span class="w">  </span><span class="nt">time_active</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">              </span><span class="c1"># target-time rule (counter-linear ramp)</span>

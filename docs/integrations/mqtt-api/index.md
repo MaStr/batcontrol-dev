@@ -169,7 +169,6 @@ See [Forecast Metrics](https://mastr.github.io/batcontrol/integrations/forecast-
 See [Peak Shaving](https://mastr.github.io/batcontrol/features/peak-shaving/index.md) for details:
 
 - `house/batcontrol/peak_shaving/enabled` - Whether peak shaving is enabled (`true`/`false`)
-- `house/batcontrol/peak_shaving/mode` - Active mode (`time`, `price`, or `combined`)
 - `house/batcontrol/peak_shaving/allow_full_battery_after` - Target hour (0-23)
 - `house/batcontrol/peak_shaving/charge_limit` - Current charge limit in W (`-1` = inactive / no limit)
 - `house/batcontrol/peak_shaving/price_limit` - Price threshold in EUR/kWh
@@ -225,7 +224,6 @@ Batcontrol listens to the following `/set` topics for remote control:
 ### Peak Shaving
 
 - `house/batcontrol/peak_shaving/enabled/set` - Enable or disable peak shaving (`true`/`false`)
-- `house/batcontrol/peak_shaving/mode/set` - Set mode (`time`, `price`, or `combined`)
 - `house/batcontrol/peak_shaving/allow_full_battery_after/set` - Set target hour (0-23)
 - `house/batcontrol/peak_shaving/price_limit/set` - Set price threshold in EUR/kWh (`-1` disables the price component)
 
