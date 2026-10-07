@@ -158,7 +158,7 @@ After the first successful start, work through this in order:
 1. **Set your annual consumption.** Update `consumption_forecast.csv.annual_consumption` with your actual value in kWh. This scales the default load profile to your household.
 1. **Configure your tariff provider.** If you use a dynamic provider (Tibber, aWATTar, etc.), set the correct type and API key. For a flat rate, use `tariff_zones` with a single zone price — batcontrol will still run peak shaving.
 1. **Review battery charge limits.** The defaults (`max_charging_from_grid_limit: 89%`, `always_allow_discharge_limit: 90%`) are conservative starting values. Adjust them to match your usage patterns after a few days of observation.
-1. **Enable peak shaving** (optional). If your PV installation frequently reaches full battery charge before midday, enable peak shaving to spread the charging and keep buffer capacity for the afternoon. Requires `battery_control.type: next` and `peak_shaving.enabled: true`. See [Peak Shaving](https://mastr.github.io/batcontrol/features/peak-shaving/index.md).
+1. **Enable peak shaving** (optional). If your PV installation frequently reaches full battery charge before midday, enable peak shaving to spread the charging and keep buffer capacity for the afternoon. Requires `peak_shaving.enabled: true`. See [Peak Shaving](https://mastr.github.io/batcontrol/features/peak-shaving/index.md).
 1. **Connect to Home Assistant** (optional). Enable the MQTT API to get real-time state, price, and forecast data as Home Assistant entities, and to override battery limits at runtime. See [MQTT API](https://mastr.github.io/batcontrol/integrations/mqtt-api/index.md).
 1. **Connect evcc** (optional). If you charge an electric vehicle, the evcc integration can hold battery discharge while the car is charging. See [evcc Connection](https://mastr.github.io/batcontrol/integrations/evcc-connection/index.md).
 
@@ -264,7 +264,7 @@ Based on the forecasts and current battery state, batcontrol puts your inverter 
 
 ### Mode 8: LIMIT BATTERY CHARGE RATE (Peak Shaving)
 
-- **Requires**: version 0.8.0+ , Logic type `next` must be selected in `battery_control.type`
+- **Requires**: version 0.8.0+ , `peak_shaving.enabled: true`
 - **When**: Peak shaving is enabled, PV is producing, and the battery should not fill up too quickly
 - **Behavior**:
 - Battery **discharge is allowed** (handles household demand normally)
@@ -1852,18 +1852,17 @@ Peak shaving solves this by **limiting the PV-to-battery charge rate** so the ba
 
 ## Status
 
-The algorithm is in the status "experimental", which is the reason why it is only available in the logic type `next`. After collecting enough experience with that feature, it will move into `default` eventually.
+Peak shaving is **stable** and part of the standard battery control logic.
 
 ## Prerequisites
 
-Peak shaving was introduced with 0.8.0 and is only available with the **`next` logic type**. Set this in the `battery_control` section of your configuration:
+Peak shaving was introduced with 0.8.0 in the `next` logic type. Since 0.10.0 it is part of the standard logic, so no particular `battery_control.type` has to be selected any more -- setting `peak_shaving.enabled: true` is enough.
 
-```
-battery_control:
-  type: next   # Required -- 'default' does not include peak shaving
-```
+Existing configurations with `type: next` keep working unchanged: `next` is only an alias for the standard logic and behaves identically.
 
-The `default` logic type does not support peak shaving at all. Enabling peak shaving without switching to `next` has no effect.
+Upgrading from 0.9.x or earlier with `type: default`
+
+Before 0.10.0, `peak_shaving.enabled: true` had **no effect** unless `battery_control.type` was set to `next`. If your configuration carries `enabled: true` from that time, peak shaving now becomes active on the first control cycle after the upgrade and starts limiting PV-to-battery charging. batcontrol logs a one-time `Peak shaving is ENABLED ...` line at startup so the change is visible. Set `peak_shaving.enabled: false` if you do not want the feature.
 
 ## Configuration
 
@@ -2109,9 +2108,6 @@ The charge limit is recalculated every evaluation cycle (typically every 3 minut
 **Simple time-based setup** -- spread charging until 14:00, no price or solar awareness:
 
 ```
-battery_control:
-  type: next
-
 peak_shaving:
   enabled: true
   time_active: true
@@ -2123,9 +2119,6 @@ peak_shaving:
 **Price-aware combined setup** -- reserve capacity for cheap slots below 5 ct/kWh:
 
 ```
-battery_control:
-  type: next
-
 peak_shaving:
   enabled: true
   time_active: true
@@ -2138,9 +2131,6 @@ peak_shaving:
 **With solar feed-in limit** -- add clipping absorption for a 10 kWp plant (6000 W limit):
 
 ```
-battery_control:
-  type: next
-
 peak_shaving:
   enabled: true
   time_active: true
@@ -6660,7 +6650,7 @@ The document is now **ready to guide implementation**. Please answer the stakeho
 
 # Evaluation: Solar feed-in limit (Solarspitzengesetz) in peak shaving
 
-Status: **implemented** — the rule described here ships as `src/batcontrol/logic/solar_limit.py` plus `_apply_solar_limit()` in `src/batcontrol/logic/next.py`. This page documents the evaluation that preceded the implementation; its numbers are reproduced by the test suite. Simulation script: [`scripts/simulate_solar_limit_day.py`](https://github.com/MaStr/batcontrol/blob/main/scripts/simulate_solar_limit_day.py), figures generated by `scripts/plot_solar_limit_day.py`.
+Status: **implemented** — the rule described here ships as `src/batcontrol/logic/solar_limit.py` plus `_apply_solar_limit()` in `src/batcontrol/logic/default.py`. This page documents the evaluation that preceded the implementation; its numbers are reproduced by the test suite. Simulation script: [`scripts/simulate_solar_limit_day.py`](https://github.com/MaStr/batcontrol/blob/main/scripts/simulate_solar_limit_day.py), figures generated by `scripts/plot_solar_limit_day.py`.
 
 ## Background: the 60% rule
 
@@ -6855,7 +6845,7 @@ Known limits: forecast sensitivity (scenarios 4/4b) — without a live measureme
 
 1. `logic/logic_interface.py`: extend `PeakShavingConfig` with `time_active`, `price_active`, `solar_cap_active`, `feed_in_limit_w` (default 0 = neutral) and `feed_in_limit_headroom` (default 1.0); deprecate `mode` and map it onto the switches in `from_config()` (log a warning); validation analogous to `price_limit`.
 1. New `logic/solar_limit.py`: take `compute_solar_limit()` and `merge_limits()` from the simulation script unchanged (pure functions, pattern: `grid_charge_target.py`).
-1. `logic/next.py`: own post-processing step `_apply_solar_limit()` **after** `_apply_peak_shaving()` with its own (smaller) skip list: also runs at high SoC and after `allow_full_battery_after`; still skips on force-charge and on `allow_discharge == False` (there the inverter charges surplus unrestricted anyway). Merge according to the priority rule above; `enforce_min_pv_charge_rate` once on the final merged value. Extract the helper `_remaining_interval_hours()` (partial slot 0, cf. the grid-recharge block). `feed_in_limit_headroom` acts on the forecast surplus and the floor uses the headroom-corrected clip (`headroom_on='surplus'`, `floor_source='headroom'` in the simulation script; trade-off see scenario 4b).
+1. `logic/default.py`: own post-processing step `_apply_solar_limit()` **after** `_apply_peak_shaving()` with its own (smaller) skip list: also runs at high SoC and after `allow_full_battery_after`; still skips on force-charge and on `allow_discharge == False` (there the inverter charges surplus unrestricted anyway). Merge according to the priority rule above; `enforce_min_pv_charge_rate` once on the final merged value. Extract the helper `_remaining_interval_hours()` (partial slot 0, cf. the grid-recharge block). `feed_in_limit_headroom` acts on the forecast surplus and the floor uses the headroom-corrected clip (`headroom_on='surplus'`, `floor_source='headroom'` in the simulation script; trade-off see scenario 4b).
 1. `core.py`: startup warning when `feed_in_limit_w > 0` and `max_pv_charge_rate > 0`.
 1. Tests: `tests/batcontrol/logic/test_solar_limit.py` (pure functions) + integration cases in `test_peak_shaving.py` (floor overrides cap incl. cap 0, reservation, scarcity `cap == floor`, neutral value = bit-identical behavior, sentinels, partial slot 0, 15-min, mode deprecation mapping).
 1. `config/batcontrol_config_dummy.yaml` + `docs/features/peak-shaving.md` + HA add-on mirroring (`MaStr/batcontrol_ha_addon`).

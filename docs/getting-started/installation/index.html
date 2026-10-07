@@ -1749,7 +1749,7 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 <p><strong>Review battery charge limits.</strong> The defaults (<code>max_charging_from_grid_limit: 89%</code>, <code>always_allow_discharge_limit: 90%</code>) are conservative starting values. Adjust them to match your usage patterns after a few days of observation.</p>
 </li>
 <li>
-<p><strong>Enable peak shaving</strong> (optional). If your PV installation frequently reaches full battery charge before midday, enable peak shaving to spread the charging and keep buffer capacity for the afternoon. Requires <code>battery_control.type: next</code> and <code>peak_shaving.enabled: true</code>. See <a href="../../features/peak-shaving/">Peak Shaving</a>.</p>
+<p><strong>Enable peak shaving</strong> (optional). If your PV installation frequently reaches full battery charge before midday, enable peak shaving to spread the charging and keep buffer capacity for the afternoon. Requires <code>peak_shaving.enabled: true</code>. See <a href="../../features/peak-shaving/">Peak Shaving</a>.</p>
 </li>
 <li>
 <p><strong>Connect to Home Assistant</strong> (optional). Enable the MQTT API to get real-time state, price, and forecast data as Home Assistant entities, and to override battery limits at runtime. See <a href="../../integrations/mqtt-api/">MQTT API</a>.</p>
