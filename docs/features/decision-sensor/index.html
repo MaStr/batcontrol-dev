@@ -10,25 +10,31 @@
       
       
       
+        <link rel="canonical" href="https://mastr.github.io/batcontrol/features/decision-sensor/">
       
+      
+        <link rel="prev" href="../price-difference-calculation/">
+      
+      
+        <link rel="next" href="../../integrations/mqtt-api/">
       
       
         
       
       
-      <link rel="icon" href="/batcontrol/assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Batcontrol Documentation</title>
+        <title>Understanding the Decision Sensor - Batcontrol Documentation</title>
       
     
     
-      <link rel="stylesheet" href="/batcontrol/assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="/batcontrol/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -47,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="/batcontrol/assets/css/peak-shaving-charts.css">
+      <link rel="stylesheet" href="../../assets/css/peak-shaving-charts.css">
     
-    <script>__md_scope=new URL("/batcontrol/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#understanding-the-decision-sensor" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -85,7 +96,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/batcontrol/." title="Batcontrol Documentation" class="md-header__button md-logo" aria-label="Batcontrol Documentation" data-md-component="logo">
+    <a href="../.." title="Batcontrol Documentation" class="md-header__button md-logo" aria-label="Batcontrol Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.67 4H15V2H9v2H7.33A1.33 1.33 0 0 0 6 5.33v15.33C6 21.4 6.6 22 7.33 22h9.33c.74 0 1.34-.6 1.34-1.33V5.33C18 4.6 17.4 4 16.67 4M11 20v-5.5H9L13 7v5.5h2"/></svg>
@@ -105,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Understanding the Decision Sensor
             
           </span>
         </div>
@@ -223,7 +234,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/batcontrol/." title="Batcontrol Documentation" class="md-nav__button md-logo" aria-label="Batcontrol Documentation" data-md-component="logo">
+    <a href="../.." title="Batcontrol Documentation" class="md-nav__button md-logo" aria-label="Batcontrol Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.67 4H15V2H9v2H7.33A1.33 1.33 0 0 0 6 5.33v15.33C6 21.4 6.6 22 7.33 22h9.33c.74 0 1.34-.6 1.34-1.33V5.33C18 4.6 17.4 4 16.67 4M11 20v-5.5H9L13 7v5.5h2"/></svg>
@@ -253,7 +264,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -332,7 +343,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/getting-started/installation/" class="md-nav__link">
+      <a href="../../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -360,7 +371,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/getting-started/how-batcontrol-works/" class="md-nav__link">
+      <a href="../../getting-started/how-batcontrol-works/" class="md-nav__link">
         
   
   
@@ -447,7 +458,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/configuration/batcontrol-configuration/" class="md-nav__link">
+      <a href="../../configuration/batcontrol-configuration/" class="md-nav__link">
         
   
   
@@ -475,7 +486,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/configuration/inverter-configuration/" class="md-nav__link">
+      <a href="../../configuration/inverter-configuration/" class="md-nav__link">
         
   
   
@@ -503,7 +514,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/configuration/multiple-inverters/" class="md-nav__link">
+      <a href="../../configuration/multiple-inverters/" class="md-nav__link">
         
   
   
@@ -531,7 +542,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/configuration/dynamic-tariff-provider/" class="md-nav__link">
+      <a href="../../configuration/dynamic-tariff-provider/" class="md-nav__link">
         
   
   
@@ -559,7 +570,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/configuration/solar-forecast/" class="md-nav__link">
+      <a href="../../configuration/solar-forecast/" class="md-nav__link">
         
   
   
@@ -587,7 +598,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/configuration/consumption-forecast/" class="md-nav__link">
+      <a href="../../configuration/consumption-forecast/" class="md-nav__link">
         
   
   
@@ -619,8 +630,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -631,11 +644,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -656,7 +669,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -674,7 +687,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/features/battery-control-expert/" class="md-nav__link">
+      <a href="../battery-control-expert/" class="md-nav__link">
         
   
   
@@ -702,7 +715,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/features/peak-shaving/" class="md-nav__link">
+      <a href="../peak-shaving/" class="md-nav__link">
         
   
   
@@ -730,7 +743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/features/peak-shaving-scenarios/" class="md-nav__link">
+      <a href="../peak-shaving-scenarios/" class="md-nav__link">
         
   
   
@@ -758,7 +771,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/features/price-difference-calculation/" class="md-nav__link">
+      <a href="../price-difference-calculation/" class="md-nav__link">
         
   
   
@@ -783,10 +796,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/batcontrol/features/decision-sensor/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understanding the Decision Sensor
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -802,6 +842,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-find-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to find it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-read-the-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to read the state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reading-the-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -873,7 +977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/integrations/mqtt-api/" class="md-nav__link">
+      <a href="../../integrations/mqtt-api/" class="md-nav__link">
         
   
   
@@ -901,7 +1005,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/integrations/forecast-metrics/" class="md-nav__link">
+      <a href="../../integrations/forecast-metrics/" class="md-nav__link">
         
   
   
@@ -929,7 +1033,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/integrations/mqtt-inverter/" class="md-nav__link">
+      <a href="../../integrations/mqtt-inverter/" class="md-nav__link">
         
   
   
@@ -957,7 +1061,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/integrations/evcc-connection/" class="md-nav__link">
+      <a href="../../integrations/evcc-connection/" class="md-nav__link">
         
   
   
@@ -1044,7 +1148,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/development/15-min-transform/" class="md-nav__link">
+      <a href="../../development/15-min-transform/" class="md-nav__link">
         
   
   
@@ -1072,7 +1176,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/development/solar-limit-evaluation/" class="md-nav__link">
+      <a href="../../development/solar-limit-evaluation/" class="md-nav__link">
         
   
   
@@ -1100,7 +1204,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/batcontrol/development/decision-trace/" class="md-nav__link">
+      <a href="../../development/decision-trace/" class="md-nav__link">
         
   
   
@@ -1145,6 +1249,60 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-find-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to find it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-read-the-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to read the state
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#worked-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reading-the-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading the attributes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1157,8 +1315,126 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+    <a href="https://github.com/MaStr/batcontrol/edit/main/docs/features/decision-sensor.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="understanding-the-decision-sensor">Understanding the Decision Sensor<a class="headerlink" href="#understanding-the-decision-sensor" title="Permanent link">&para;</a></h1>
+<p>If MQTT is enabled, batcontrol publishes a <strong>Decision</strong> sensor to Home
+Assistant. It answers, in plain language, <em>why</em> batcontrol is currently
+charging, discharging, limiting PV charging, or holding the battery.</p>
+<p>This page is for anyone running batcontrol who wants to read that sensor.
+For the underlying data model (reason codes, the decision journal, how to
+add a step), see <a href="../../development/decision-trace/">Decision Trace and Journal</a>.</p>
+<h2 id="where-to-find-it">Where to find it<a class="headerlink" href="#where-to-find-it" title="Permanent link">&para;</a></h2>
+<p>The sensor's state is the text shown below; its attributes (click into the
+entity in Home Assistant) carry the full detail behind that one line,
+including every step that was checked during that control cycle.</p>
+<h2 id="how-to-read-the-state">How to read the state<a class="headerlink" href="#how-to-read-the-state" title="Permanent link">&para;</a></h2>
+<p>The state always has the same shape:</p>
+<div class="highlight"><pre><span></span><code>&lt;Mode&gt; [&lt;value&gt; W] - &lt;why&gt;
+</code></pre></div>
+<ul>
+<li><strong>Mode</strong> is what the inverter is doing: <code>Discharge Allowed</code>, <code>Avoid
+  Discharge</code>, <code>Limit Battery Charge</code>, or <code>Charge from Grid</code>.</li>
+<li><strong>value</strong> is the charge rate (force charge) or the PV charge limit
+  (limit mode), in watts. The other two modes have no value.</li>
+<li><strong>why</strong> is one sentence explaining the mode, built from the numbers
+  batcontrol actually used to decide.</li>
+</ul>
+<p>The sensor only updates when something meaningful changes: a different
+mode, or the charge rate / PV limit changing by 25&nbsp;% or more. Small,
+continuous adjustments between evaluations do not create a new state.</p>
+<h2 id="worked-examples">Worked examples<a class="headerlink" href="#worked-examples" title="Permanent link">&para;</a></h2>
+<p>These are real sensor states, not simplified paraphrases -- each one is
+exactly what <code>status_text()</code> produces for the numbers shown.</p>
+<p><strong>Battery is allowed to discharge, there is enough energy</strong></p>
+<blockquote>
+<p>Discharge Allowed - usable energy (3500 Wh) exceeds the 1200 Wh reserved
+for upcoming expensive hours</p>
+</blockquote>
+<p>batcontrol is holding back 1200 Wh for a price spike it has already seen
+coming; the rest (3500 Wh usable) is free to use now.</p>
+<p><strong>Battery is charged from the grid</strong></p>
+<blockquote>
+<p>Charge from Grid 2133 W - usable energy (900 Wh) is below the 2500 Wh
+reserved for upcoming expensive hours, so 1600 Wh is charged from the grid</p>
+</blockquote>
+<p>The 900 Wh left is not enough to cover the reserve for the next expensive
+hours, so the missing 1600 Wh is bought now while it is cheap, at a rate
+that fills the battery before the current price slot ends.</p>
+<p><strong>Peak shaving slows down PV charging</strong></p>
+<blockquote>
+<p>Limit Battery Charge 1200 W - PV charging is capped at 1200 W
+(time,price) so the battery does not fill up before 16:00</p>
+</blockquote>
+<p>See <a href="../peak-shaving/">Peak Shaving</a>: without the cap, the battery would
+fill up early and stop absorbing solar, well before the configured target
+hour (16:00 here).</p>
+<p><strong>Solar feed-in limit (<code>Solarspitzengesetz</code>) absorption</strong></p>
+<blockquote>
+<p>Limit Battery Charge 900 W - the battery charges at 900 W to absorb
+solar surplus that would otherwise be clipped at the 6000 W feed-in limit</p>
+</blockquote>
+<p>Production is about to exceed the configured 6000 W feed-in limit; rather
+than curtailing (= wasting) the surplus, the battery absorbs it.</p>
+<p><strong>An external system blocks discharge</strong></p>
+<blockquote>
+<p>Avoid Discharge - an external system (such as evcc) requested that the
+battery not discharge</p>
+</blockquote>
+<p>Today this is always evcc, holding the battery back while, for example, a
+car is charging.</p>
+<p><strong>A Home Assistant / API request could not be applied as asked</strong></p>
+<blockquote>
+<p>Discharge Allowed - requested via the API or Home Assistant</p>
+</blockquote>
+<p>The attributes' <code>inputs</code> show a <code>requested_mode</code> that differs from the
+<code>mode</code> actually applied: the requested mode (e.g. "Limit Battery Charge")
+had no limit configured, so batcontrol fell back to a safe mode instead.</p>
+<p><strong>Forecasts could not be refreshed</strong></p>
+<blockquote>
+<p>Discharge Allowed - forecast data could not be refreshed for 185
+seconds, falling back to a safe mode</p>
+</blockquote>
+<p>batcontrol could not reach a forecast provider; after a short grace period
+it falls back to allowing discharge rather than guessing.</p>
+<p><strong>Battery is full enough to always allow discharge</strong></p>
+<blockquote>
+<p>Discharge Allowed - stored energy (8200 Wh) is above the
+always-allow-discharge level (80% of capacity)</p>
+</blockquote>
+<p>Above the configured <code>always_allow_discharge_limit</code>, batcontrol always
+allows discharging, regardless of price.</p>
+<h2 id="reading-the-attributes">Reading the attributes<a class="headerlink" href="#reading-the-attributes" title="Permanent link">&para;</a></h2>
+<p>The attributes are the full trace of that control cycle: every rule that
+was checked, not only the one that decided the outcome. A rule that did
+not apply (<code>"outcome": "skipped"</code> or <code>"not_needed"</code>) is still listed --
+that is how you can tell, for example, that peak shaving was evaluated and
+found nothing to do, rather than not running at all. The step that
+produced the sensor's state is named at the top level as <code>decided_by</code>,
+and its plain-language sentence is repeated there as <code>why</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1176,6 +1452,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../price-difference-calculation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Price Difference Calculation">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Price Difference Calculation
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../integrations/mqtt-api/" class="md-footer__link md-footer__link--next" aria-label="Next: MQTT API">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                MQTT API
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1203,14 +1517,14 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/batcontrol/", "features": ["navigation.sections", "navigation.top", "navigation.footer", "content.action.edit", "content.code.copy", "search.suggest", "search.highlight"], "search": "/batcontrol/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.footer", "content.action.edit", "content.code.copy", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/batcontrol/assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
-        <script src="/batcontrol/assets/js/vendor/chart.umd.js"></script>
+        <script src="../../assets/js/vendor/chart.umd.js"></script>
       
-        <script src="/batcontrol/assets/js/peak-shaving-charts.js"></script>
+        <script src="../../assets/js/peak-shaving-charts.js"></script>
       
     
   </body>

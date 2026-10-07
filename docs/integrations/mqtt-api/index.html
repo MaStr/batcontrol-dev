@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://mastr.github.io/batcontrol/integrations/mqtt-api/">
       
       
-        <link rel="prev" href="../../features/price-difference-calculation/">
+        <link rel="prev" href="../../features/decision-sensor/">
       
       
         <link rel="next" href="../forecast-metrics/">
@@ -790,6 +790,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/decision-sensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understanding the Decision Sensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1513,6 +1541,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/decision-trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Trace and Journal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2204,6 +2260,8 @@ are not affected.</p>
 <li><code>house/batcontrol/discharge_blocked</code> - Whether discharge is blocked (<code>true</code>/<code>false</code>)</li>
 <li><code>house/batcontrol/api_override_active</code> - Whether a temporary external/API override is active (<code>true</code>/<code>false</code>)</li>
 <li><code>house/batcontrol/control_source</code> - Source that last selected the current control state (<code>api</code> or <code>optimizer</code>)</li>
+<li><code>house/batcontrol/decision</code> - Current mode with its value and a plain-language explanation as text, e.g. <code>Charge from Grid 2133 W - usable energy (900 Wh) is below the 2500 Wh reserved for upcoming expensive hours, so 1600 Wh is charged from the grid</code> (retained). The content changes on a status change only (a new mode, or a change of the charge rate / PV limit of the current mode by 25 % or more) and is republished every evaluation like the mode. Shown as the <strong>Decision</strong> sensor in Home Assistant -- see <a href="../../features/decision-sensor/">Understanding the Decision Sensor</a> for what it means, and <a href="../../development/decision-trace/#journal-and-status-change-listeners">Decision Trace</a> for how it is produced</li>
+<li><code>house/batcontrol/decision/attributes</code> - JSON with the decision trace of that status change (retained): <code>kind</code> (<code>mode</code> or <code>value</code>), <code>mode</code>, <code>previous_mode</code>, <code>value</code>, <code>previous_value</code>, <code>control_source</code>, <code>decided_by</code>, <code>why</code> (the same explanation as the state, for the step that decided) and the evaluated <code>records</code>, see <a href="../../development/decision-trace/">Decision Trace</a> for the full field reference. Used as attributes of the <strong>Decision</strong> sensor</li>
 <li><code>house/batcontrol/grid_charge_locked</code> - Whether an external (HEMS/grid operator) request is currently blocking charging from the grid (<code>true</code>/<code>false</code>), see <a href="#grid-charge-lock-external-hemsgrid-operator-signal">Grid Charge Lock</a></li>
 </ul>
 <h3 id="battery-information">Battery Information<a class="headerlink" href="#battery-information" title="Permanent link">&para;</a></h3>
@@ -2438,7 +2496,7 @@ see the Forecast Data Format section below.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../features/price-difference-calculation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Price Difference Calculation">
+          <a href="../../features/decision-sensor/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Understanding the Decision Sensor">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2448,7 +2506,7 @@ see the Forecast Data Format section below.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Price Difference Calculation
+                Understanding the Decision Sensor
               </div>
             </div>
           </a>
