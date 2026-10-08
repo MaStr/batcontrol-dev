@@ -926,6 +926,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#forecast-horizon-and-time-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forecast Horizon and Time Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#websocket-communication" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1974,6 +1985,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#forecast-horizon-and-time-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forecast Horizon and Time Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#websocket-communication" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2489,8 +2511,18 @@ Uses only the last 3 days for very dynamic forecasting.</p>
 - Computed statistics are <strong>cached</strong> for <code>cache_ttl_hours</code>
 - Cache stores consumption values per weekday/hour combination
 - Cache is automatically refreshed when data is missing
-- Cache survives batcontrol restarts (in-memory cache)</p>
+- Cache survives batcontrol restarts (in-memory cache)
+- The forecast horizon is capped at 48 hours, so one cold cache never
+  requests more than 48 hourly statistics per <code>history_days</code> entry</p>
 <p><strong>Cache key format:</strong> <code>"weekday_hour"</code> (e.g., <code>"0_14"</code> = Monday 14:00)</p>
+<h3 id="forecast-horizon-and-time-resolution">Forecast Horizon and Time Resolution<a class="headerlink" href="#forecast-horizon-and-time-resolution" title="Permanent link">&para;</a></h3>
+<p>The forecast is requested in <strong>slots</strong> at the configured
+<code>time_resolution_minutes</code> (see
+<a href="../batcontrol-configuration/">Batcontrol Configuration</a>), while
+HomeAssistant statistics are hourly. Batcontrol converts between the two, so
+a 24 hour horizon reads 24 hours of history in both 60-minute and 15-minute
+mode - the number of <code>recorder/statistics_during_period</code> requests does not
+depend on the time resolution.</p>
 <h3 id="websocket-communication">WebSocket Communication<a class="headerlink" href="#websocket-communication" title="Permanent link">&para;</a></h3>
 <p>The HomeAssistant forecaster uses the modern <strong>WebSocket API</strong> for efficient communication:</p>
 <ol>
