@@ -1233,6 +1233,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#refresh-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refresh events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#built-in-listener-home-assistant-decision-sensor" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1364,6 +1375,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#refresh-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refresh events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#built-in-listener-home-assistant-decision-sensor" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1421,7 +1443,8 @@ produces a <strong>decision trace</strong>: the ordered list of decision steps t
 evaluated, each with its inputs and a stable reason code. The traces are kept in
 an in-memory <strong>journal</strong>, and registered listeners are called whenever the
 inverter status changes (new mode, or a significant change of the charge rate /
-PV limit).</p>
+PV limit). Listeners that show the explanation (the "Decision" sensor) can
+also ask for refreshes, so its numbers and reason stay current.</p>
 <p>This is the foundation for answering "why did batcontrol do this?" from the
 outside, for example from a chat bot or an MCP server. For what the Home
 Assistant "Decision" sensor itself looks like and how to read it, see
@@ -1525,8 +1548,14 @@ explains why something did <strong>not</strong> happen.</p>
 <tr>
 <td><code>override</code></td>
 <td><code>applied</code></td>
-<td><code>EXTERNAL_DISCHARGE_BLOCK</code>, <code>EXTERNAL_DISCHARGE_UNBLOCK</code>, <code>GRID_CHARGE_LOCK</code>, <code>FORECAST_ERROR_FALLBACK</code>, <code>CALCULATION_FAILED</code>, <code>API_REQUEST</code> (input <code>requested_mode</code> shows the mode the API asked for, which can differ if it fell back), <code>PV_CHARGE_RATE_CLAMPED</code>, <code>GRID_CHARGE_RATE_CLAMPED</code></td>
+<td><code>EXTERNAL_DISCHARGE_BLOCK</code>, <code>EXTERNAL_DISCHARGE_UNBLOCK</code>, <code>GRID_CHARGE_LOCK</code>, <code>FORECAST_ERROR_FALLBACK</code>, <code>CALCULATION_FAILED</code>, <code>API_REQUEST</code> (input <code>requested_mode</code> shows the mode the API asked for, which can differ if it fell back)</td>
 <td>yes</td>
+</tr>
+<tr>
+<td><code>override</code></td>
+<td><code>applied</code></td>
+<td><code>PV_CHARGE_RATE_CLAMPED</code>, <code>GRID_CHARGE_RATE_CLAMPED</code></td>
+<td>no (note, see below)</td>
 </tr>
 <tr>
 <td><code>mode</code></td>
@@ -1553,16 +1582,30 @@ apart purely from <code>high_price_slots</code>/<code>high_price_energy_demand</
 - <code>RECHARGE_BELOW_MINIMUM</code>: a real demand remained, but the resulting
   amount is below the minimum charge amount, so nothing is charged for it
   (<code>recharge_energy_before_minimum</code> &gt; 0).</p>
+<p>This step is only reached when the <code>discharge</code> step forbade discharging, so
+it is the decisive step of the Avoid Discharge mode. It therefore also
+carries <code>stored_usable_energy</code> and <code>reserved_energy</code> from that step, and its
+explanation says both why the battery is held and why it is not recharged
+from the grid, e.g. <code>battery is held for upcoming more expensive hours
+(usable 900 Wh, reserve 2500 Wh); no grid charging: solar is forecast to
+cover the demand of the hours where it would pay off</code>. The two are not a
+contradiction: the reserve counts every upcoming hour that is more
+expensive than now, grid charging only pays off for hours that are more
+expensive by at least the (dynamic) minimum price difference.</p>
 <p><code>core.py</code> applies two hardware/config-level clamps <em>after</em> the logic has
 already decided a value: <code>force_charge()</code> caps the grid recharge rate to
 <code>max_grid_charge_rate</code>, and <code>limit_battery_charge_rate()</code> caps the PV limit
 to <code>max_pv_charge_rate</code>/<code>min_pv_charge_rate</code>. When a clamp actually changes
-the value, it is recorded as a decisive <code>override</code>/<code>applied</code> step
+the value, it is recorded as a non-decisive <code>override</code>/<code>applied</code> step
 (<code>GRID_CHARGE_RATE_CLAMPED</code> / <code>PV_CHARGE_RATE_CLAMPED</code>, inputs <code>requested_w</code>
 and <code>applied_w</code>) between the step that decided the pre-clamp value and the
-<code>mode</code> record -- so the trace's "why" always matches what was actually
-applied to the inverter, instead of silently keeping the earlier step's
-now-stale reason. A clamp that does not change anything (the decided value
+<code>mode</code> record. Such a step is a <strong>note</strong>: it adjusts the value, but the
+reason for the mode stays with the decisive step, and the note is appended
+to its explanation in brackets (<code>DecisionTrace.explanation()</code>, reasons in
+<code>NOTE_REASONS</code>), e.g. <code>... so 1600 Wh is charged from the grid (charge rate
+capped from 3200 W to 1000 W by the configured maximum grid charge rate)</code>.
+So the "why" matches what was actually applied to the inverter without
+hiding why the mode was chosen. A clamp that does not change anything (the decided value
 was already within limits) adds no step. This only applies to mode changes
 made from within a control cycle (<code>Batcontrol.run()</code>); a direct API call
 (<code>api_set_charge_rate</code>/<code>api_set_limit_battery_charge_rate</code>) has no decision
@@ -1580,15 +1623,23 @@ not renamed lightly.</p>
 <p><code>DecisionRecord.explanation()</code> renders one sentence for a reason code, meant
 for a human rather than the source code -- it is what ends up in the "Decision"
 sensor's state (<code>DecisionTrace.status_text()</code>) and as <code>why</code> in <code>to_dict()</code>
-(both on the record and, for the decisive step, on the trace itself). The
+(on the record; on the trace it is <code>DecisionTrace.explanation()</code>, the
+decisive step's sentence plus the notes). The
 mapping lives in <code>_REASON_EXPLANATIONS</code> (<code>decision_trace.py</code>): most entries
 are a plain string with <code>{input_key}</code> placeholders, filled in via
 <code>str.format(**record.inputs)</code> from the record's own inputs -- the same
 numbers already captured for the log line, so adding an explanation never
-needs a new input. A reason with no placeholders is used as-is. If filling
+needs a new input. A reason with no placeholders is used as-is. An entry can
+also be a function of the inputs, for a sentence that depends on the values
+rather than only showing them (<code>PV_CHARGE_LIMITED</code> names the purpose of each
+active peak shaving limit). If filling
 in the placeholders fails (a key is missing, e.g. because a record was built
 before an explanation existed for its reason), <code>explanation()</code> falls back to
 a readable version of the reason code itself and never raises.</p>
+<p>Guidelines for the sentence of a decisive reason: it answers "why is the
+inverter in this mode" (not why something else did not happen), and it does
+not repeat the value of the mode, which precedes it in the status text
+(<code>Limit Battery Charge 1200 W - PV charging is limited so ...</code>).</p>
 <h2 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h2>
 <p>Each record can render itself as one line (<code>DecisionRecord.summary()</code>). The
 logic classes log decisive steps at <code>INFO</code> and all other steps at <code>DEBUG</code>:</p>
@@ -1614,6 +1665,7 @@ holds the last 200 traces (in memory only, lost on restart).</p>
 
 <span class="n">journal</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span>               <span class="c1"># trace of the most recent decision</span>
 <span class="n">journal</span><span class="o">.</span><span class="n">last_status_change</span><span class="p">()</span>   <span class="c1"># why the inverter is in its current state</span>
+<span class="n">journal</span><span class="o">.</span><span class="n">last_event</span><span class="p">()</span>           <span class="c1"># same, or a newer refresh of it (see below)</span>
 <span class="n">journal</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>            <span class="c1"># newest 10 traces, oldest first</span>
 </code></pre></div>
 <p>Every mode change, whether it comes from the optimizer, the MQTT API, evcc or
@@ -1663,15 +1715,36 @@ counts. The factor is <code>DEFAULT_VALUE_CHANGE_FACTOR</code> (0.25) and can be
 </ul>
 <p>Cycles without a status change do not call listeners; they are still stored in
 the journal and available via <code>latest()</code> and <code>history()</code>.</p>
+<h3 id="refresh-events">Refresh events<a class="headerlink" href="#refresh-events" title="Permanent link">&para;</a></h3>
+<p>A status change keeps its trace, so the numbers in its explanation get old
+while the mode stays the same (for example the usable energy of <code>Discharge
+Allowed</code> over several hours), and a new reason with the same mode would not
+show up at all. A listener that shows the explanation registers with
+<code>add_listener(listener, refresh=True)</code> and additionally gets events of
+<code>kind == 'refresh'</code> with the trace of the latest cycle when</p>
+<ul>
+<li>the reason of the decisive step changed, or</li>
+<li>the last event (of any kind) is <code>DEFAULT_REFRESH_INTERVAL</code> (15 minutes)
+  old.</li>
+</ul>
+<p>The check runs in <code>commit()</code>, i.e. once per control cycle (every 3 minutes),
+so no timer is needed. Refresh events have <code>previous_mode=None</code> and
+<code>previous_value=None</code>, and they do not move the reference of the status
+change detection: <code>last_status_change()</code> and the 25 % comparison stay at the
+last <code>mode</code>/<code>value</code> event. <code>last_event()</code> returns the newest event including
+refreshes. Listeners registered without <code>refresh=True</code> never see refresh
+events.</p>
 <h3 id="built-in-listener-home-assistant-decision-sensor">Built-in listener: Home Assistant "Decision" sensor<a class="headerlink" href="#built-in-listener-home-assistant-decision-sensor" title="Permanent link">&para;</a></h3>
-<p>If MQTT is enabled, <code>MqttApi.publish_status_change</code> is registered as listener.
+<p>If MQTT is enabled, <code>MqttApi.publish_status_change</code> is registered as listener
+with <code>refresh=True</code>.
 It publishes the mode with its value and reason as text on <code>&lt;base&gt;/decision</code>
 (e.g. <code>Charge from Grid 1250 W - Grid recharge required</code>) and the trace as JSON
 on <code>&lt;base&gt;/decision/attributes</code>. Both are retained. Home Assistant discovers
 them as the <strong>Decision</strong> sensor, with the JSON as attributes. The content
-changes on status changes only, not on every evaluation. The last status change
-is published again in every evaluation, like the mode, so an event that
-happened while the broker was unreachable reaches the sensor afterwards.
+changes on status changes and refresh events, not on every evaluation, so it
+is at most 15 minutes old. The last event (<code>last_event()</code>) is published again
+in every evaluation, like the mode, so an event that happened while the
+broker was unreachable reaches the sensor afterwards.
 The attributes are published first, and the text only if that publish's
 return code reports success, so the text topic never advances ahead of the
 attributes topic. The return code of the text publish is checked too; if
