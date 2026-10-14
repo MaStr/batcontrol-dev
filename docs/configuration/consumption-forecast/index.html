@@ -2331,11 +2331,19 @@ docker<span class="w"> </span><span class="nb">kill</span><span class="w"> </spa
 <li>HomeAssistant Long-Lived Access Token</li>
 </ul>
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<div class="admonition info">
+<p class="admonition-title">Key names</p>
+<p>The credential is <code>api_token</code> and the endpoint is <code>url</code>, consistently across all
+configuration sections. The older spellings <code>apitoken</code>, <code>apikey</code> and <code>base_url</code> are still
+read, but log a deprecation warning at startup. The Home Assistant add-on offers only
+<code>url</code> and <code>api_token</code> from version 0.10.0 on - rename them there in the same step as the
+update.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="nt">consumption_forecast</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">homeassistant-api</span>
 <span class="w">  </span><span class="nt">homeassistant_api</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span><span class="w">   </span><span class="c1"># Your HomeAssistant URL</span>
-<span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_LONG_LIVED_ACCESS_TOKEN</span><span class="w">     </span><span class="c1"># Long-Lived Access Token</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span><span class="w">        </span><span class="c1"># Your HomeAssistant URL</span>
+<span class="w">    </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_LONG_LIVED_ACCESS_TOKEN</span><span class="w">   </span><span class="c1"># Long-Lived Access Token</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span><span class="w">        </span><span class="c1"># Entity ID with consumption data</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span><span class="w">                           </span><span class="c1"># Options: 'auto', 'Wh', or 'kWh' (since 0.5.7)</span>
 <span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span><span class="w">               </span><span class="c1"># Days to look back (negative values)</span>
@@ -2355,12 +2363,12 @@ docker<span class="w"> </span><span class="nb">kill</span><span class="w"> </spa
 </thead>
 <tbody>
 <tr>
-<td><code>base_url</code></td>
+<td><code>url</code></td>
 <td>HomeAssistant URL (ws is correct)</td>
 <td><code>ws://homeassistant.local:8123</code></td>
 </tr>
 <tr>
-<td><code>apitoken</code></td>
+<td><code>api_token</code></td>
 <td>Long-Lived Access Token from HomeAssistant</td>
 <td><code>eyJ0eXAiOiJKV1Qi...</code></td>
 </tr>
@@ -2436,8 +2444,8 @@ docker<span class="w"> </span><span class="nb">kill</span><span class="w"> </spa
 <div class="highlight"><pre><span></span><code><span class="nt">consumption_forecast</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">homeassistant-api</span>
 <span class="w">  </span><span class="nt">homeassistant_api</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
-<span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_TOKEN</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
+<span class="w">    </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_TOKEN</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kWh</span><span class="w">  </span><span class="c1"># Explicit configuration - faster startup!</span>
 </code></pre></div></p>
@@ -2560,8 +2568,11 @@ python<span class="w"> </span>test_homeassistant_forecast.py
 <p><strong>Problem:</strong> "No load profile specified, using default"</p>
 <p><strong>Solution:</strong> Specify a valid <code>load_profile</code> filename in your configuration.</p>
 <h3 id="homeassistant-api-method">HomeAssistant API Method<a class="headerlink" href="#homeassistant-api-method" title="Permanent link">&para;</a></h3>
-<p><strong>Problem:</strong> "Authentication failed"</p>
+<p><strong>Problem:</strong> "Authentication failed" or "expected str at 'access_token'. Got None"</p>
 <p><strong>Solution:</strong>
+- <code>Got None</code> means no token reached the provider: the credential key is <code>api_token</code>
+  (<code>apitoken</code> still works but is deprecated), and it belongs in the same block as
+  <code>entity_id</code> and <code>url</code>
 - Verify your access token is correct
 - Check if the token has been revoked in HomeAssistant
 - Create a new Long-Lived Access Token</p>
@@ -2572,8 +2583,8 @@ This error occurs when your HomeAssistant instance has many entities (sensors, l
 <div class="highlight"><pre><span></span><code><span class="nt">consumption_forecast</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">homeassistant-api</span>
 <span class="w">  </span><span class="nt">homeassistant_api</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
-<span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_TOKEN</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
+<span class="w">    </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">YOUR_TOKEN</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kWh</span><span class="w">  </span><span class="c1"># or 'Wh' depending on your sensor</span>
 </code></pre></div></p>
@@ -2591,7 +2602,7 @@ This error occurs when your HomeAssistant instance has many entities (sensors, l
 - Check HomeAssistant logs for recorder issues</p>
 <p><strong>Problem:</strong> "Connection refused"</p>
 <p><strong>Solution:</strong>
-- Verify <code>base_url</code> is correct and accessible from batcontrol
+- Verify <code>url</code> is correct and accessible from batcontrol
 - Check if HomeAssistant is running
 - Verify network connectivity
 - Check firewall rules</p>
@@ -2715,8 +2726,8 @@ Batcontrol automatically detects whether your sensor reports in Wh or kWh and ap
 <div class="highlight"><pre><span></span><code><span class="nt">consumption_forecast</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">homeassistant-api</span>
 <span class="w">  </span><span class="nt">homeassistant_api</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://192.168.1.100:8123</span>
-<span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://192.168.1.100:8123</span>
+<span class="w">    </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.house_energy_total</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">auto</span><span class="w">  </span><span class="c1"># Auto-detect (default)</span>
 <span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span>
@@ -2728,8 +2739,8 @@ Batcontrol automatically detects whether your sensor reports in Wh or kWh and ap
 <div class="highlight"><pre><span></span><code><span class="nt">consumption_forecast</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">homeassistant-api</span>
 <span class="w">  </span><span class="nt">homeassistant_api</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
-<span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_token_here</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
+<span class="w">    </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_token_here</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kWh</span><span class="w">  </span><span class="c1"># Explicit unit - faster startup, no auto-detection needed</span>
 <span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-7;-14;-21"</span>
@@ -2741,8 +2752,8 @@ Batcontrol automatically detects whether your sensor reports in Wh or kWh and ap
 <div class="highlight"><pre><span></span><code><span class="nt">consumption_forecast</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">homeassistant-api</span>
 <span class="w">  </span><span class="nt">homeassistant_api</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
-<span class="w">    </span><span class="nt">apitoken</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_token_here</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ws://homeassistant.local:8123</span>
+<span class="w">    </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_token_here</span>
 <span class="w">    </span><span class="nt">entity_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sensor.energy_consumption</span>
 <span class="w">    </span><span class="nt">sensor_unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Wh</span><span class="w">  </span><span class="c1"># Explicit unit for optimal performance</span>
 <span class="w">    </span><span class="nt">history_days</span><span class="p">:</span><span class="w"> </span><span class="s">"-1;-2;-3"</span><span class="w">  </span><span class="c1"># Only last 3 days</span>

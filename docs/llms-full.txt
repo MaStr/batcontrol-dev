@@ -857,6 +857,10 @@ Currently following data providers are available:
 
 You can chose one and need to adjust the configuration.
 
+Key names
+
+The credential is `api_token` and the endpoint is `url`, consistently across all configuration sections. The older spellings `apikey`, `apitoken` and `base_url` are still read, but log a deprecation warning at startup. The Home Assistant add-on offers only `url` and `api_token` from version 0.10.0 on - rename them there in the same step as the update.
+
 ## tibber
 
 You need to get an API Key from https://developer.tibber.com/ , which looks like `Zz-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx`. After obtaining this key, use the following configuration:
@@ -864,7 +868,7 @@ You need to get an API Key from https://developer.tibber.com/ , which looks like
 ```
 utility:
   type: tibber 
-  apikey: YOUR-PASSWORD
+  api_token: YOUR-PASSWORD
 ```
 
 ## awattar
@@ -1005,7 +1009,7 @@ To use energyforecast.de, create a login at [energyforecast.de](https://www.ener
 ```
 utility:
   type: energyforecast
-  apikey: xxxxxxxxx
+  api_token: xxxxxxxxx
   vat: 0.19     # 19% VAT
   fees: 0.15    # Your network fees (Netzentgelt), EUR/kWh excl. VAT
   markup: 0.00  # Optional markup, e.g. supplier margin
@@ -1028,7 +1032,7 @@ This is useful if:
 ```
 utility:
   type: energyforecast_total_price
-  apikey: xxxxxxxxx
+  api_token: xxxxxxxxx
   # market_zone: DE  # optional: DE/LU (default, both map to DE-LU market zone), AT, FR, NL, BE, PL, DK1, DK2
 ```
 
@@ -1154,12 +1158,20 @@ The minimum configuration is:
 solar_forecast_provider: homeassistant-solar-forecast-ml
 pvinstallations:
   - name: HA Solar ML Forecast
-    base_url: ws://homeassistant.local:8123  # Your HomeAssistant URL
+    url: ws://homeassistant.local:8123       # Your HomeAssistant URL
     api_token: eyJ...                        # Long-lived access token from HA Profile
     entity_id: sensor.solar_forecast_ml_evcc_solar_prognose  # Forecast sensor entity
 ```
 
-If you're running batcontrol in a HomeAssistant addon, use `ws://homeassistant:8123` as the base_url. For standalone installations, use your HomeAssistant IP or hostname.
+If you're running batcontrol in a HomeAssistant addon, use `ws://homeassistant:8123` as the url. For standalone installations, use your HomeAssistant IP or hostname.
+
+List only the entries of the provider you selected
+
+This provider uses a single `pvinstallations` entry: the one with a matching `type:`, or the one carrying `entity_id`. Entries of *other* providers have to be removed, because `fcsolarapi` and `solcast` read every entry in the list and fail on an entry that does not carry their keys. With several entries and no way to tell which one is meant, batcontrol stops at startup and asks you to add `type: homeassistant-solar-forecast-ml`.
+
+Key names
+
+The credential is `api_token` and the endpoint is `url`, consistently across all configuration sections. The older spellings `base_url`, `apikey` and `apitoken` are still read, but log a deprecation warning at startup. The Home Assistant add-on offers only `url` and `api_token` from version 0.10.0 on - rename them there in the same step as the update.
 
 ### Optional Parameters
 
@@ -1168,11 +1180,11 @@ You can customize the behavior with additional parameters:
 ```
 pvinstallations:
   - name: HA Solar ML Forecast
-    base_url: ws://homeassistant:8123
+    url: ws://homeassistant:8123
     api_token: eyJ...
     entity_id: sensor.solar_forecast_ml_prognose_nachste_stunde
     sensor_unit: auto  # Options: 'auto' (default, auto-detect), 'Wh', or 'kWh'
-    cache_ttl_hours: 24.0  # Cache duration in hours (default: 24.0)
+    cache_ttl_hours: 24.0  # Cache duration in hours (default: 12.0)
 ```
 
 The `sensor_unit` parameter:
@@ -1182,6 +1194,24 @@ The `sensor_unit` parameter:
 - `kWh`: If you know your sensor reports in kWh
 
 Setting the explicit unit (`Wh` or `kWh`) can speed up startup by skipping auto-detection.
+
+The `cache_ttl_hours` parameter controls how long an already fetched forecast stays usable as a fallback when HomeAssistant cannot be reached (default: 12 hours). It does not control how often batcontrol asks for a new forecast — that is the refresh interval of the provider.
+
+### Troubleshooting
+
+**Problem:** batcontrol stops at startup with `Auth message incorrectly formatted: expected str at 'access_token'. Got None`
+
+**Solution:** the access token never reached the provider. Check that
+
+- the token is configured as `api_token` — `apikey` is the key name of the fcsolarapi and Solcast providers and was a common mix-up ([issue #451](https://github.com/MaStr/batcontrol/issues/451))
+- the token sits in the same `pvinstallations` entry as `entity_id` and `url`
+- the entry belongs to the selected provider (see the note above about `type:`)
+
+Since batcontrol 0.10.0 a missing token is reported as a configuration error naming the key, before any connection to HomeAssistant is attempted.
+
+**Problem:** `No "url" configured for installation <name>, falling back to ws://homeassistant.local:8123`
+
+**Solution:** your URL is not in the entry batcontrol selected. Use the key `url` (or the deprecated `base_url`) in the entry that also holds `entity_id`.
 
 ## Solcast
 
@@ -1196,7 +1226,7 @@ Solcast offers a free "Home User" (hobbyist) account which is sufficient for bat
 1. Register at [solcast.com](https://solcast.com/free-rooftop-solar-forecasting) and choose the free **Home User** (hobbyist) plan.
 1. In the Solcast toolkit, create a **Rooftop Site**. Enter your location (latitude/longitude), panel tilt, azimuth and capacity (kWp) there — the site geometry lives in your Solcast account, **not** in the batcontrol configuration.
 1. Copy the site's **resource id** (shown in the site details, format `xxxx-xxxx-xxxx-xxxx`).
-1. Copy your **API key** from the Solcast account settings.
+1. Copy your **API key** from the Solcast account settings (configured as `api_token`).
 
 The free account is limited to **one location with up to two rooftop sites** (e.g. an east/west split) and **10 API requests per day**.
 
@@ -1209,7 +1239,7 @@ solar_forecast_provider: solcast
 pvinstallations:
   - name: Haus #name
     resource_id: xxxx-xxxx-xxxx-xxxx  # from your Solcast rooftop site
-    apikey: your-solcast-api-key      # from your Solcast account settings
+    api_token: your-solcast-api-key   # from your Solcast account settings
 ```
 
 For two rooftop sites (e.g. east/west arrays) use one entry per site. The API key is the same for both, each site has its own resource id:
@@ -1219,10 +1249,10 @@ solar_forecast_provider: solcast
 pvinstallations:
   - name: Dach Ost
     resource_id: xxxx-xxxx-xxxx-aaaa
-    apikey: your-solcast-api-key
+    api_token: your-solcast-api-key
   - name: Dach West
     resource_id: xxxx-xxxx-xxxx-bbbb
-    apikey: your-solcast-api-key
+    api_token: your-solcast-api-key
 ```
 
 ### Optional percentile parameter
@@ -1233,7 +1263,7 @@ You can select which estimate batcontrol uses per installation:
 pvinstallations:
   - name: Haus
     resource_id: xxxx-xxxx-xxxx-xxxx
-    apikey: your-solcast-api-key
+    api_token: your-solcast-api-key
     percentile: 10  # 10 (pessimistic), 50 (default, most likely), 90 (optimistic)
 ```
 
@@ -1374,12 +1404,16 @@ The HomeAssistant API method provides **dynamic consumption forecasting** based 
 
 ### Configuration
 
+Key names
+
+The credential is `api_token` and the endpoint is `url`, consistently across all configuration sections. The older spellings `apitoken`, `apikey` and `base_url` are still read, but log a deprecation warning at startup. The Home Assistant add-on offers only `url` and `api_token` from version 0.10.0 on - rename them there in the same step as the update.
+
 ```
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123   # Your HomeAssistant URL
-    apitoken: YOUR_LONG_LIVED_ACCESS_TOKEN     # Long-Lived Access Token
+    url: ws://homeassistant.local:8123        # Your HomeAssistant URL
+    api_token: YOUR_LONG_LIVED_ACCESS_TOKEN   # Long-Lived Access Token
     entity_id: sensor.energy_consumption        # Entity ID with consumption data
     sensor_unit: auto                           # Options: 'auto', 'Wh', or 'kWh' (since 0.5.7)
     history_days: "-7;-14;-21"               # Days to look back (negative values)
@@ -1394,8 +1428,8 @@ consumption_forecast:
 
 | Parameter   | Description                                                     | Example                         |
 | ----------- | --------------------------------------------------------------- | ------------------------------- |
-| `base_url`  | HomeAssistant URL (ws is correct)                               | `ws://homeassistant.local:8123` |
-| `apitoken`  | Long-Lived Access Token from HomeAssistant                      | `eyJ0eXAiOiJKV1Qi...`           |
+| `url`       | HomeAssistant URL (ws is correct)                               | `ws://homeassistant.local:8123` |
+| `api_token` | Long-Lived Access Token from HomeAssistant                      | `eyJ0eXAiOiJKV1Qi...`           |
 | `entity_id` | Entity ID tracking consumption (must have long-term statistics) | `sensor.energy_consumption`     |
 
 #### Optional Parameters
@@ -1446,8 +1480,8 @@ The `sensor_unit` parameter controls how batcontrol detects the unit of measurem
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: YOUR_TOKEN
+    url: ws://homeassistant.local:8123
+    api_token: YOUR_TOKEN
     entity_id: sensor.energy_consumption
     sensor_unit: kWh  # Explicit configuration - faster startup!
 ```
@@ -1619,10 +1653,11 @@ ______________________________________________________________________
 
 ### HomeAssistant API Method
 
-**Problem:** "Authentication failed"
+**Problem:** "Authentication failed" or "expected str at 'access_token'. Got None"
 
 **Solution:**
 
+- `Got None` means no token reached the provider: the credential key is `api_token` (`apitoken` still works but is deprecated), and it belongs in the same block as `entity_id` and `url`
 - Verify your access token is correct
 - Check if the token has been revoked in HomeAssistant
 - Create a new Long-Lived Access Token
@@ -1637,8 +1672,8 @@ ______________________________________________________________________
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: YOUR_TOKEN
+    url: ws://homeassistant.local:8123
+    api_token: YOUR_TOKEN
     entity_id: sensor.energy_consumption
     sensor_unit: kWh  # or 'Wh' depending on your sensor
 ```
@@ -1665,7 +1700,7 @@ consumption_forecast:
 
 **Solution:**
 
-- Verify `base_url` is correct and accessible from batcontrol
+- Verify `url` is correct and accessible from batcontrol
 - Check if HomeAssistant is running
 - Verify network connectivity
 - Check firewall rules
@@ -1795,8 +1830,8 @@ consumption_forecast:
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://192.168.1.100:8123
-    apitoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+    url: ws://192.168.1.100:8123
+    api_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
     entity_id: sensor.house_energy_total
     sensor_unit: auto  # Auto-detect (default)
     history_days: "-7;-14;-21"
@@ -1811,8 +1846,8 @@ consumption_forecast:
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: your_token_here
+    url: ws://homeassistant.local:8123
+    api_token: your_token_here
     entity_id: sensor.energy_consumption
     sensor_unit: kWh  # Explicit unit - faster startup, no auto-detection needed
     history_days: "-7;-14;-21"
@@ -1827,8 +1862,8 @@ consumption_forecast:
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: your_token_here
+    url: ws://homeassistant.local:8123
+    api_token: your_token_here
     entity_id: sensor.energy_consumption
     sensor_unit: Wh  # Explicit unit for optimal performance
     history_days: "-1;-2;-3"  # Only last 3 days
@@ -6137,11 +6172,11 @@ ______________________________________________________________________
 - [ ] Awattar (Germany/Austria)
 - [ ] Tibber (Nordic countries, Germany, Netherlands)
 - [ ] evcc integration
-- [ ] Other: ***\_******\_***\_
+- [ ] Other: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - **Q**: What is your tariff's price update frequency?
 - [ ] Hourly (most common)
 - [ ] 15-minute intervals
-- [ ] Other: ***\_******\_***\_
+- [ ] Other: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ### 3. Hardware & Environment
 
@@ -6149,11 +6184,11 @@ ______________________________________________________________________
 - [ ] Raspberry Pi 3 or older
 - [ ] Raspberry Pi 4/5
 - [ ] Server (x86)
-- [ ] Docker container on: ***\_******\_***\_
+- [ ] Docker container on: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - **Q**: What are your hardware specs?
-- CPU: ***\_******\_***\_
-- RAM: ***\_******\_***\_
-- Storage: ***\_******\_***\_
+- CPU: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+- RAM: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+- Storage: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ### 4. Testing Capability
 
@@ -6184,10 +6219,10 @@ ______________________________________________________________________
 - [ ] Want more responsive battery control
 - [ ] Proactive optimization
 - [ ] Regulatory requirement
-- [ ] Other: ***\_******\_***\_
+- [ ] Other: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - **Q**: Is this critical or nice-to-have?
 - [ ] Critical - needed within: \_\_\_\_\_ weeks
-- [ ] Important - target date: ***\_******\_***\_
+- [ ] Important - target date: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - [ ] Nice-to-have - no rush
 
 ### 7. Backward Compatibility
@@ -6211,8 +6246,8 @@ ______________________________________________________________________
 
 - **Q**: Are there other users you know who need 15-min intervals?
 - Number: \_\_\_\_\_
-- Countries: ***\_******\_***\_
-- Use cases: ***\_******\_***\_
+- Countries: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+- Use cases: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ### 10. Future Features
 
@@ -6221,7 +6256,7 @@ ______________________________________________________________________
 - [ ] Adaptive interval selection (auto-switch based on conditions)
 - [ ] Machine learning for consumption forecasting
 - [ ] Better solar interpolation (weather-aware)
-- [ ] Other: ***\_******\_***\_
+- [ ] Other: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 **Please provide answers in the GitHub issue or discussion thread.**
 

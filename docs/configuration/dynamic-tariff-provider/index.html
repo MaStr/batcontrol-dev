@@ -1599,11 +1599,19 @@
 <li>energyforecast.de (total price mode)</li>
 </ul>
 <p>You can chose one and need to adjust the configuration.</p>
+<div class="admonition info">
+<p class="admonition-title">Key names</p>
+<p>The credential is <code>api_token</code> and the endpoint is <code>url</code>, consistently across all
+configuration sections. The older spellings <code>apikey</code>, <code>apitoken</code> and <code>base_url</code> are still
+read, but log a deprecation warning at startup. The Home Assistant add-on offers only
+<code>url</code> and <code>api_token</code> from version 0.10.0 on - rename them there in the same step as the
+update.</p>
+</div>
 <h2 id="tibber">tibber<a class="headerlink" href="#tibber" title="Permanent link">&para;</a></h2>
 <p>You need to get an API Key from https://developer.tibber.com/ , which looks like <code>Zz-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx</code>. After obtaining this key, use the following configuration:</p>
 <div class="highlight"><pre><span></span><code>utility:
   type: tibber 
-  apikey: YOUR-PASSWORD
+  api_token: YOUR-PASSWORD
 </code></pre></div>
 <h2 id="awattar">awattar<a class="headerlink" href="#awattar" title="Permanent link">&para;</a></h2>
 <p>batcontrol provides two different awattar types:</p>
@@ -1788,7 +1796,7 @@ for aWATTar. This gives you full control over the price components.</p>
 to obtain an API key.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">utility</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">energyforecast</span>
-<span class="w">  </span><span class="nt">apikey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxxxxxx</span>
+<span class="w">  </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxxxxxx</span>
 <span class="w">  </span><span class="nt">vat</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.19</span><span class="w">     </span><span class="c1"># 19% VAT</span>
 <span class="w">  </span><span class="nt">fees</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">    </span><span class="c1"># Your network fees (Netzentgelt), EUR/kWh excl. VAT</span>
 <span class="w">  </span><span class="nt">markup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.00</span><span class="w">  </span><span class="c1"># Optional markup, e.g. supplier margin</span>
@@ -1811,7 +1819,7 @@ batcontrol reads the API's <code>total_ct_kwh</code> field directly without any 
 </ul>
 <div class="highlight"><pre><span></span><code><span class="nt">utility</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">energyforecast_total_price</span>
-<span class="w">  </span><span class="nt">apikey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxxxxxx</span>
+<span class="w">  </span><span class="nt">api_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">xxxxxxxxx</span>
 <span class="w">  </span><span class="c1"># market_zone: DE  # optional: DE/LU (default, both map to DE-LU market zone), AT, FR, NL, BE, PL, DK1, DK2</span>
 </code></pre></div>
 <p><strong>Important:</strong> Do not set <code>vat</code>, <code>fees</code>, or <code>markup</code> -- they are ignored for this provider

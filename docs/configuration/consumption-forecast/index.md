@@ -110,12 +110,16 @@ The HomeAssistant API method provides **dynamic consumption forecasting** based 
 
 ### Configuration
 
+Key names
+
+The credential is `api_token` and the endpoint is `url`, consistently across all configuration sections. The older spellings `apitoken`, `apikey` and `base_url` are still read, but log a deprecation warning at startup. The Home Assistant add-on offers only `url` and `api_token` from version 0.10.0 on - rename them there in the same step as the update.
+
 ```
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123   # Your HomeAssistant URL
-    apitoken: YOUR_LONG_LIVED_ACCESS_TOKEN     # Long-Lived Access Token
+    url: ws://homeassistant.local:8123        # Your HomeAssistant URL
+    api_token: YOUR_LONG_LIVED_ACCESS_TOKEN   # Long-Lived Access Token
     entity_id: sensor.energy_consumption        # Entity ID with consumption data
     sensor_unit: auto                           # Options: 'auto', 'Wh', or 'kWh' (since 0.5.7)
     history_days: "-7;-14;-21"               # Days to look back (negative values)
@@ -130,8 +134,8 @@ consumption_forecast:
 
 | Parameter   | Description                                                     | Example                         |
 | ----------- | --------------------------------------------------------------- | ------------------------------- |
-| `base_url`  | HomeAssistant URL (ws is correct)                               | `ws://homeassistant.local:8123` |
-| `apitoken`  | Long-Lived Access Token from HomeAssistant                      | `eyJ0eXAiOiJKV1Qi...`           |
+| `url`       | HomeAssistant URL (ws is correct)                               | `ws://homeassistant.local:8123` |
+| `api_token` | Long-Lived Access Token from HomeAssistant                      | `eyJ0eXAiOiJKV1Qi...`           |
 | `entity_id` | Entity ID tracking consumption (must have long-term statistics) | `sensor.energy_consumption`     |
 
 #### Optional Parameters
@@ -182,8 +186,8 @@ The `sensor_unit` parameter controls how batcontrol detects the unit of measurem
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: YOUR_TOKEN
+    url: ws://homeassistant.local:8123
+    api_token: YOUR_TOKEN
     entity_id: sensor.energy_consumption
     sensor_unit: kWh  # Explicit configuration - faster startup!
 ```
@@ -355,10 +359,11 @@ ______________________________________________________________________
 
 ### HomeAssistant API Method
 
-**Problem:** "Authentication failed"
+**Problem:** "Authentication failed" or "expected str at 'access_token'. Got None"
 
 **Solution:**
 
+- `Got None` means no token reached the provider: the credential key is `api_token` (`apitoken` still works but is deprecated), and it belongs in the same block as `entity_id` and `url`
 - Verify your access token is correct
 - Check if the token has been revoked in HomeAssistant
 - Create a new Long-Lived Access Token
@@ -373,8 +378,8 @@ ______________________________________________________________________
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: YOUR_TOKEN
+    url: ws://homeassistant.local:8123
+    api_token: YOUR_TOKEN
     entity_id: sensor.energy_consumption
     sensor_unit: kWh  # or 'Wh' depending on your sensor
 ```
@@ -401,7 +406,7 @@ consumption_forecast:
 
 **Solution:**
 
-- Verify `base_url` is correct and accessible from batcontrol
+- Verify `url` is correct and accessible from batcontrol
 - Check if HomeAssistant is running
 - Verify network connectivity
 - Check firewall rules
@@ -531,8 +536,8 @@ consumption_forecast:
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://192.168.1.100:8123
-    apitoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+    url: ws://192.168.1.100:8123
+    api_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
     entity_id: sensor.house_energy_total
     sensor_unit: auto  # Auto-detect (default)
     history_days: "-7;-14;-21"
@@ -547,8 +552,8 @@ consumption_forecast:
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: your_token_here
+    url: ws://homeassistant.local:8123
+    api_token: your_token_here
     entity_id: sensor.energy_consumption
     sensor_unit: kWh  # Explicit unit - faster startup, no auto-detection needed
     history_days: "-7;-14;-21"
@@ -563,8 +568,8 @@ consumption_forecast:
 consumption_forecast:
   type: homeassistant-api
   homeassistant_api:
-    base_url: ws://homeassistant.local:8123
-    apitoken: your_token_here
+    url: ws://homeassistant.local:8123
+    api_token: your_token_here
     entity_id: sensor.energy_consumption
     sensor_unit: Wh  # Explicit unit for optimal performance
     history_days: "-1;-2;-3"  # Only last 3 days

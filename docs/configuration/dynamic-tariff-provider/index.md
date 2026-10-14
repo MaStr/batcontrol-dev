@@ -9,6 +9,10 @@ Currently following data providers are available:
 
 You can chose one and need to adjust the configuration.
 
+Key names
+
+The credential is `api_token` and the endpoint is `url`, consistently across all configuration sections. The older spellings `apikey`, `apitoken` and `base_url` are still read, but log a deprecation warning at startup. The Home Assistant add-on offers only `url` and `api_token` from version 0.10.0 on - rename them there in the same step as the update.
+
 ## tibber
 
 You need to get an API Key from https://developer.tibber.com/ , which looks like `Zz-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx`. After obtaining this key, use the following configuration:
@@ -16,7 +20,7 @@ You need to get an API Key from https://developer.tibber.com/ , which looks like
 ```
 utility:
   type: tibber 
-  apikey: YOUR-PASSWORD
+  api_token: YOUR-PASSWORD
 ```
 
 ## awattar
@@ -157,7 +161,7 @@ To use energyforecast.de, create a login at [energyforecast.de](https://www.ener
 ```
 utility:
   type: energyforecast
-  apikey: xxxxxxxxx
+  api_token: xxxxxxxxx
   vat: 0.19     # 19% VAT
   fees: 0.15    # Your network fees (Netzentgelt), EUR/kWh excl. VAT
   markup: 0.00  # Optional markup, e.g. supplier margin
@@ -180,7 +184,7 @@ This is useful if:
 ```
 utility:
   type: energyforecast_total_price
-  apikey: xxxxxxxxx
+  api_token: xxxxxxxxx
   # market_zone: DE  # optional: DE/LU (default, both map to DE-LU market zone), AT, FR, NL, BE, PL, DK1, DK2
 ```
 
