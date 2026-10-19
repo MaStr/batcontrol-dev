@@ -2463,10 +2463,12 @@ are not affected.</p>
 <h3 id="battery-information">Battery Information<a class="headerlink" href="#battery-information" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>house/batcontrol/SOC</code> - State of Charge in % (two decimal places, e.g., <code>69.00</code>)</li>
-<li><code>house/batcontrol/max_energy_capacity</code> - Maximum battery capacity in Wh</li>
+<li><code>house/batcontrol/max_energy_capacity</code> - Maximum battery capacity in Wh (reduced by max SOC)</li>
+<li><code>house/batcontrol/gross_energy_capacity</code> - Battery capacity in Wh without the max SOC reduction; SOC percentages refer to this value</li>
 <li><code>house/batcontrol/stored_energy_capacity</code> - Energy stored in battery in Wh</li>
 <li><code>house/batcontrol/stored_usable_energy_capacity</code> - Usable energy stored in battery in Wh (considering min SOC)</li>
-<li><code>house/batcontrol/reserved_energy_capacity</code> - Energy reserved for discharge in Wh</li>
+<li><code>house/batcontrol/reserved_energy_capacity</code> - Energy reserved for discharge in Wh. This is the raw demand for upcoming expensive hours and can exceed the battery</li>
+<li><code>house/batcontrol/reserved_energy_capacity_effective</code> - The reserved energy in Wh capped to what the battery can hold back: between min SOC and the lower of max SOC and <code>always_allow_discharge_limit</code></li>
 </ul>
 <h3 id="solar-surplus-information">Solar Surplus Information<a class="headerlink" href="#solar-surplus-information" title="Permanent link">&para;</a></h3>
 <p>See <a href="../forecast-metrics/">Forecast Metrics</a> for a detailed explanation of these values and how to use them for flexible load control.</p>

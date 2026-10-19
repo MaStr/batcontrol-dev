@@ -1297,6 +1297,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#what-the-api-computes-and-what-the-dashboard-computes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the API computes and what the dashboard computes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#response-shape" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1411,6 +1422,17 @@
     <span class="md-ellipsis">
       
         Error and offline behaviour
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mqtt-and-rest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MQTT and REST
       
     </span>
   </a>
@@ -1578,6 +1600,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#what-the-api-computes-and-what-the-dashboard-computes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the API computes and what the dashboard computes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#response-shape" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1699,6 +1732,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mqtt-and-rest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MQTT and REST
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1765,15 +1809,19 @@ from <code>/api/v1/...</code> (see <a href="../../integrations/rest-api/">REST A
 </tr>
 <tr>
 <td><code>GET /api/v1/battery</code></td>
-<td>SoC, capacities, reserved energy, SoC limits</td>
+<td>SoC, gross capacity, reserved energy (raw and capped), SoC limits</td>
 </tr>
 <tr>
 <td><code>GET /api/v1/current</code></td>
 <td>current price, price unit, interval width, version</td>
 </tr>
 <tr>
+<td><code>GET /api/v1/price/status</code></td>
+<td>MIN/MAX/SPREAD over the next 24 h</td>
+</tr>
+<tr>
 <td><code>GET /api/v1/forecast/price</code></td>
-<td>24 h price forecast for the sparkline and MIN/MAX/SPREAD</td>
+<td>24 h price forecast for the sparkline</td>
 </tr>
 <tr>
 <td><code>GET /api/v1/decision</code></td>
@@ -1790,6 +1838,22 @@ net_consumption) on one slot grid, so the dashboard can fetch everything in one 
 of four. The dashboard uses it when it needs more than the price.</p>
 <p>Polling follows <code>next_evaluation</code> from <code>/api/v1/status</code> rather than a hard-coded interval, so the
 header countdown matches the real control cycle.</p>
+<h3 id="what-the-api-computes-and-what-the-dashboard-computes">What the API computes and what the dashboard computes<a class="headerlink" href="#what-the-api-computes-and-what-the-dashboard-computes" title="Permanent link">&para;</a></h3>
+<p><strong>Anything a second client would have to re-implement belongs in the service layer; pure
+presentation stays in the component.</strong> A Home Assistant card, an MCP assistant or a script
+should not have to rebuild the 24 h price window, the gross capacity or the reservation cap to
+get the same numbers the dashboard shows - and two implementations of one rule drift apart.</p>
+<p>So the API delivers:</p>
+<ul>
+<li>MIN/MAX/SPREAD/average/rank over the next 24 h (<code>/price/status</code>),</li>
+<li>the gross capacity (<code>gross_energy_capacity</code>), instead of each client scaling
+  <code>max_energy_capacity</code> back up by <code>max_soc</code>,</li>
+<li>the reservation capped to the battery (<code>reserved_energy_capacity_effective</code>).</li>
+</ul>
+<p>Values MQTT needs as well are computed in the core (<code>runtime_state.py</code>) and published to both;
+values only the API needs (the price statistics) are computed in <code>web/service.py</code>.</p>
+<p>The dashboard keeps what is presentation: the sparkline's hourly means and glyphs, the box
+states of the SOC grid, the percent widths derived from the API's energies, formatting.</p>
 <h3 id="response-shape">Response shape<a class="headerlink" href="#response-shape" title="Permanent link">&para;</a></h3>
 <p>Every endpoint answers in the same envelope:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nt">"ok"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1792065332218</span><span class="p">,</span><span class="w"> </span><span class="nt">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
@@ -1936,8 +2000,10 @@ never read raw JSON.</p>
 </tr>
 </tbody>
 </table>
-<p><code>reservedCapped = min(reserved_energy, capacity * (min(MAX_SOC, always_allow_discharge) - MIN_SOC))</code>.
-The reservation can exceed the battery, hence the cap. Every box the reservation reaches is
+<p><code>reservedCapped</code> is <code>reserved_energy_capacity_effective</code> from <code>/api/v1/battery</code>:
+<code>min(reserved_energy, capacity * (min(MAX_SOC, always_allow_discharge) - MIN_SOC))</code>, computed by
+the core (<code>runtime_state.cap_reserved_energy</code>). The reservation can exceed the battery, hence the
+cap; <code>capacity</code> is <code>gross_energy_capacity</code>. Every box the reservation reaches is
 hatched, including the blinking current one. Nothing above <code>always_allow_discharge</code> is ever
 hatched - discharging is always permitted there.</p>
 <p>Legend below the grid, with exactly these names: charged, free, locked (&lt;= MIN / &gt; MAX),
@@ -1951,8 +2017,8 @@ reserved (bright and dark variant), always_discharge, current.</p>
 <li>Current price large, in EUR/kWh, from <code>/api/v1/current</code>.</li>
 <li>Sparkline over the next 24 h from hourly means, drawn with the block characters
   <code>_,.-~=#</code> equivalents (<code>U+2581</code> to <code>U+2588</code>), axis labels now / +12h / +24h.</li>
-<li>MIN 24h and MAX 24h each with their time, <strong>SPREAD 24h = max - min</strong> (computed in the
-  frontend), and <strong>GRID_CHARGE delta = <code>min_dynamic_price_difference</code></strong>.</li>
+<li>MIN 24h and MAX 24h each with their time and <strong>SPREAD 24h = max - min</strong>, all from
+  <code>/api/v1/price/status</code>, and <strong>GRID_CHARGE delta = <code>min_dynamic_price_difference</code></strong>.</li>
 </ul>
 <h2 id="look-green-screen-terminal">Look: green-screen terminal<a class="headerlink" href="#look-green-screen-terminal" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1982,6 +2048,179 @@ reserved (bright and dark variant), always_discharge, current.</p>
 <li><code>GET /api/v1/health</code> is never authenticated, so a container health check works without the
   token. The dashboard itself takes <code>online</code> from <code>/status</code>.</li>
 </ul>
+<h2 id="mqtt-and-rest">MQTT and REST<a class="headerlink" href="#mqtt-and-rest" title="Permanent link">&para;</a></h2>
+<p>Every value batcontrol publishes on MQTT has a counterpart in the REST API (and through it in
+MCP). Ratios that MQTT publishes twice - as <code>0..1</code> and as percent - appear once in each REST
+place: as percent in <code>/battery</code>, as ratio in <code>/config</code>. Timestamps are epoch seconds on MQTT and
+epoch milliseconds in REST.</p>
+<table>
+<thead>
+<tr>
+<th>MQTT topic</th>
+<th>REST</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td><code>/health</code> (<code>stale</code>), <code>/status</code> (<code>online</code>)</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td><code>/status</code> <code>mode</code></td>
+</tr>
+<tr>
+<td><code>charge_rate</code></td>
+<td><code>/status</code> <code>charge_rate</code></td>
+</tr>
+<tr>
+<td><code>limit_battery_charge_rate</code></td>
+<td><code>/status</code> <code>limit_battery_charge_rate</code></td>
+</tr>
+<tr>
+<td><code>control_source</code></td>
+<td><code>/status</code> <code>control_source</code></td>
+</tr>
+<tr>
+<td><code>api_override_active</code></td>
+<td><code>/status</code> <code>api_override_active</code></td>
+</tr>
+<tr>
+<td><code>discharge_blocked</code></td>
+<td><code>/status</code> <code>discharge_blocked</code></td>
+</tr>
+<tr>
+<td><code>grid_charge_locked</code></td>
+<td><code>/status</code> <code>grid_charge_locked</code></td>
+</tr>
+<tr>
+<td><code>evaluation_intervall</code></td>
+<td><code>/status</code> <code>evaluation_interval_seconds</code></td>
+</tr>
+<tr>
+<td><code>last_evaluation</code></td>
+<td><code>/status</code> <code>last_evaluation</code></td>
+</tr>
+<tr>
+<td><code>decision</code>, <code>decision/attributes</code></td>
+<td><code>/decision</code> <code>status_text</code>, <code>event</code></td>
+</tr>
+<tr>
+<td><code>SOC</code></td>
+<td><code>/battery</code> <code>soc</code></td>
+</tr>
+<tr>
+<td><code>max_energy_capacity</code></td>
+<td><code>/battery</code> <code>max_energy_capacity</code></td>
+</tr>
+<tr>
+<td><code>gross_energy_capacity</code></td>
+<td><code>/battery</code> <code>gross_energy_capacity</code></td>
+</tr>
+<tr>
+<td><code>stored_energy_capacity</code></td>
+<td><code>/battery</code> <code>stored_energy_capacity</code></td>
+</tr>
+<tr>
+<td><code>stored_usable_energy_capacity</code></td>
+<td><code>/battery</code> <code>stored_usable_energy_capacity</code></td>
+</tr>
+<tr>
+<td><code>reserved_energy_capacity</code></td>
+<td><code>/battery</code> <code>reserved_energy_capacity</code></td>
+</tr>
+<tr>
+<td><code>reserved_energy_capacity_effective</code></td>
+<td><code>/battery</code> <code>reserved_energy_capacity_effective</code></td>
+</tr>
+<tr>
+<td><code>always_allow_discharge_limit_capacity</code></td>
+<td><code>/battery</code> <code>always_allow_discharge_limit_capacity</code></td>
+</tr>
+<tr>
+<td><code>always_allow_discharge_limit</code>, <code>..._percent</code></td>
+<td><code>/config</code> <code>battery_control.always_allow_discharge_limit</code>, <code>/battery</code> <code>always_allow_discharge_limit_percent</code></td>
+</tr>
+<tr>
+<td><code>max_charging_from_grid_limit</code>, <code>..._percent</code></td>
+<td><code>/config</code> <code>battery_control.max_charging_from_grid_limit</code>, <code>/battery</code> <code>max_charging_from_grid_limit_percent</code></td>
+</tr>
+<tr>
+<td><code>min_grid_charge_soc</code>, <code>..._percent</code></td>
+<td><code>/config</code> <code>battery_control.min_grid_charge_soc</code></td>
+</tr>
+<tr>
+<td><code>effective_min_grid_charge_soc</code>, <code>..._percent</code></td>
+<td><code>/battery</code> <code>effective_min_grid_charge_soc_percent</code></td>
+</tr>
+<tr>
+<td><code>min_price_difference</code></td>
+<td><code>/config</code> <code>battery_control.min_price_difference</code></td>
+</tr>
+<tr>
+<td><code>min_price_difference_rel</code></td>
+<td><code>/config</code> <code>battery_control.min_price_difference_rel</code></td>
+</tr>
+<tr>
+<td><code>min_dynamic_price_difference</code></td>
+<td><code>/current</code> and <code>/price/status</code> <code>min_dynamic_price_difference</code></td>
+</tr>
+<tr>
+<td><code>production_offset</code></td>
+<td><code>/config</code> <code>battery_control.production_offset_percent</code></td>
+</tr>
+<tr>
+<td><code>solar_active</code></td>
+<td><code>/solar</code> <code>solar_active</code></td>
+</tr>
+<tr>
+<td><code>solar_surplus_wh</code></td>
+<td><code>/solar</code> <code>solar_surplus_wh</code></td>
+</tr>
+<tr>
+<td><code>pv_start_battery_wh</code></td>
+<td><code>/solar</code> <code>pv_start_battery_wh</code></td>
+</tr>
+<tr>
+<td><code>forecast_min_battery_wh</code></td>
+<td><code>/solar</code> <code>forecast_min_battery_wh</code></td>
+</tr>
+<tr>
+<td><code>peak_shaving/enabled</code></td>
+<td><code>/config</code> <code>peak_shaving.enabled</code>, <code>/peak-shaving</code> <code>enabled</code></td>
+</tr>
+<tr>
+<td><code>peak_shaving/allow_full_battery_after</code></td>
+<td><code>/config</code> <code>peak_shaving.allow_full_battery_after</code></td>
+</tr>
+<tr>
+<td><code>peak_shaving/price_limit</code></td>
+<td><code>/config</code> <code>peak_shaving.price_limit</code> (null instead of MQTT's -1)</td>
+</tr>
+<tr>
+<td><code>peak_shaving/charge_limit</code></td>
+<td><code>/peak-shaving</code> <code>charge_limit_w</code></td>
+</tr>
+<tr>
+<td><code>FCST/prices</code>, <code>FCST/production</code>, <code>FCST/consumption</code>, <code>FCST/net_consumption</code></td>
+<td><code>/forecast</code>, <code>/forecast/{series}</code></td>
+</tr>
+<tr>
+<td><code>inverters/&lt;id&gt;/SOC</code>, <code>stored_energy</code>, <code>stored_usable_energy</code>, <code>free_capacity</code>, <code>max_capacity</code></td>
+<td><code>/inverter/{id}</code></td>
+</tr>
+<tr>
+<td><code>inverters/&lt;id&gt;/capacity</code>, <code>min_soc</code>, <code>max_soc</code>, <code>max_grid_charge_rate</code>, <code>max_pv_charge_rate</code> (Fronius)</td>
+<td><code>/inverter/{id}</code></td>
+</tr>
+<tr>
+<td><code>inverters/&lt;id&gt;/em_mode</code>, <code>em_power</code> (Fronius)</td>
+<td><code>/inverter/{id}</code> <code>extra</code></td>
+</tr>
+</tbody>
+</table>
+<p>Not mapped on purpose: the Home Assistant discovery messages (<code>homeassistant/...</code>) are MQTT
+plumbing, not values, and the <code>*/set</code> topics are inputs - the REST API is read-only.</p>
 <h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
 <p>The dashboard is a reader, like the API it is built on. It has no controls that change
 batcontrol's behaviour - no mode buttons, no charge-rate slider, no config form. Overrides stay

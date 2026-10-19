@@ -1647,6 +1647,10 @@ the network <strong>and</strong> set a token.</p>
 <td>Current price together with the SoC</td>
 </tr>
 <tr>
+<td><code>batcontrol_get_price_status</code></td>
+<td>Cheapest and most expensive slot, rank of the current price, average and spread over the next 24 hours</td>
+</tr>
+<tr>
 <td><code>batcontrol_get_price_forecast</code></td>
 <td>Price per slot in EUR/kWh</td>
 </tr>
@@ -1661,6 +1665,22 @@ the network <strong>and</strong> set a token.</p>
 <tr>
 <td><code>batcontrol_get_net_consumption_forecast</code></td>
 <td>Consumption minus production; negative is surplus</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_solar</code></td>
+<td>Whether there is solar surplus, and how low the battery gets until PV takes over</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_peak_shaving</code></td>
+<td>Whether peak shaving ran, was suspended by evcc, and which PV charge limit it set</td>
+</tr>
+<tr>
+<td><code>batcontrol_list_inverters</code></td>
+<td>The inverters by id</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_inverter</code></td>
+<td>The values of one inverter</td>
 </tr>
 <tr>
 <td><code>batcontrol_get_decision</code></td>
@@ -1681,7 +1701,8 @@ the network <strong>and</strong> set a token.</p>
 </tbody>
 </table>
 <p>Forecast tools default to the next <strong>24 hours</strong> and page for more, so an assistant is not handed
-several hundred slots it has to pay for.</p>
+several hundred slots it has to pay for. For "when is it cheapest" questions
+<code>batcontrol_get_price_status</code> answers in one small call without any paging.</p>
 <h2 id="what-it-cannot-tell-you">What it cannot tell you<a class="headerlink" href="#what-it-cannot-tell-you" title="Permanent link">&para;</a></h2>
 <p>Worth knowing before trusting an answer - the tools say so too, but assistants summarise:</p>
 <ul>

@@ -1858,12 +1858,17 @@ list, and <code>get_status</code> from an unknown server is a worse prompt than 
 </tr>
 <tr>
 <td><code>batcontrol_get_battery</code></td>
-<td>SoC, capacities, reserved energy, SoC limits</td>
+<td>SoC, capacities, reserved energy (raw and capped), SoC limits</td>
 <td>-</td>
 </tr>
 <tr>
 <td><code>batcontrol_get_current</code></td>
 <td>Current price together with SoC, in one call</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_price_status</code></td>
+<td>Cheapest/most expensive slot, rank, average and spread over the next 24 h</td>
 <td>-</td>
 </tr>
 <tr>
@@ -1885,6 +1890,26 @@ list, and <code>get_status</code> from an unknown server is a worse prompt than 
 <td><code>batcontrol_get_net_consumption_forecast</code></td>
 <td>Consumption minus production; negative = surplus</td>
 <td>yes</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_solar</code></td>
+<td>Solar surplus indicators derived from the forecast</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_peak_shaving</code></td>
+<td>Whether peak shaving ran, evcc suspension, resulting PV limit</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>batcontrol_list_inverters</code></td>
+<td>The inverters by id</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>batcontrol_get_inverter</code></td>
+<td>The values of one inverter</td>
+<td>-</td>
 </tr>
 <tr>
 <td><code>batcontrol_get_decision</code></td>

@@ -469,6 +469,46 @@
       
     </span>
 </a>
+<nav aria-label="Endpoints" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#price-status">
+<span class="md-ellipsis">
+      
+        Price status
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#runtime-overrides-in-config">
+<span class="md-ellipsis">
+      
+        Runtime overrides in /config
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#inverters">
+<span class="md-ellipsis">
+      
+        Inverters
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mqtt-and-rest">
+<span class="md-ellipsis">
+      
+        MQTT and REST
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#examples">
@@ -713,6 +753,46 @@
       
     </span>
 </a>
+<nav aria-label="Endpoints" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#price-status">
+<span class="md-ellipsis">
+      
+        Price status
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#runtime-overrides-in-config">
+<span class="md-ellipsis">
+      
+        Runtime overrides in /config
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#inverters">
+<span class="md-ellipsis">
+      
+        Inverters
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#mqtt-and-rest">
+<span class="md-ellipsis">
+      
+        MQTT and REST
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#examples">
@@ -839,7 +919,7 @@ port - see the add-on documentation.</p>
 <tr>
 <td><code>not_found</code></td>
 <td>404</td>
-<td>unknown forecast series, or an empty decision journal</td>
+<td>unknown forecast series or inverter id, or an empty decision journal</td>
 </tr>
 <tr>
 <td><code>unauthorized</code></td>
@@ -871,11 +951,15 @@ port - see the add-on documentation.</p>
 </tr>
 <tr>
 <td><code>GET /api/v1/battery</code></td>
-<td>SoC, capacities, reserved energy, SoC limits</td>
+<td>SoC, capacities, reserved energy (raw and capped to the battery), SoC limits</td>
 </tr>
 <tr>
 <td><code>GET /api/v1/current</code></td>
 <td>current price together with the SoC</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/price/status</code></td>
+<td>price statistics for the next 24 hours: current price and its rank, cheapest and most expensive slot, average, spread</td>
 </tr>
 <tr>
 <td><code>GET /api/v1/forecast</code></td>
@@ -886,6 +970,10 @@ port - see the add-on documentation.</p>
 <td><code>price</code>, <code>consumption</code>, <code>production</code> or <code>net_consumption</code></td>
 </tr>
 <tr>
+<td><code>GET /api/v1/solar</code></td>
+<td>solar surplus indicators derived from the forecast (see <a href="../forecast-metrics/">forecast metrics</a>)</td>
+</tr>
+<tr>
 <td><code>GET /api/v1/decision</code></td>
 <td>the latest decision trace and its plain-language explanation</td>
 </tr>
@@ -894,13 +982,53 @@ port - see the add-on documentation.</p>
 <td>recent decisions from the in-memory journal</td>
 </tr>
 <tr>
+<td><code>GET /api/v1/peak-shaving</code></td>
+<td>what <a href="../../features/peak-shaving/">peak shaving</a> did in the last cycle: active or suspended by evcc, resulting PV charge limit, outcome of its rules</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/inverters</code></td>
+<td>the inverters by id</td>
+</tr>
+<tr>
+<td><code>GET /api/v1/inverter/{inverter_id}</code></td>
+<td>the values of one inverter, as read in the last control cycle</td>
+</tr>
+<tr>
 <td><code>GET /api/v1/config</code></td>
-<td>the runtime parameters behind the decisions</td>
+<td>the runtime parameters behind the decisions, and which of them are overridden at runtime</td>
 </tr>
 </tbody>
 </table>
 <p>Forecast endpoints accept <code>limit</code> and <code>offset</code> and report <code>total_count</code>, <code>has_more</code> and
 <code>next_offset</code>, so a long horizon can be paged.</p>
+<h3 id="price-status">Price status<a class="headerlink" href="#price-status" title="Permanent link">¶</a></h3>
+<p><code>/price/status</code> covers the <strong>next 24 hours from the current slot</strong>, independent of how far the
+optimizer looks ahead. Every value is per slot at the configured resolution (<code>interval_minutes</code>):
+<code>min</code> is the cheapest slot, so there is no separate "cheapest window". <code>rank</code> is the position of
+the current price in the window, 1 being the cheapest; equal prices share a rank. When the
+tariff provider's prices end before the 24 hours do, <code>complete</code> is <code>false</code> and <code>slot_count</code> says
+how many slots the statistics cover.</p>
+<h3 id="runtime-overrides-in-config">Runtime overrides in <code>/config</code><a class="headerlink" href="#runtime-overrides-in-config" title="Permanent link">¶</a></h3>
+<p>The fields of <code>/config</code> always show the value <strong>in effect</strong>. Several of them can change at
+runtime - via MQTT, through evcc, by the grid charge lock (which sets
+<code>max_charging_from_grid_limit</code> to 0) or by the control loop itself (it lowers
+<code>max_charging_from_grid_limit</code> below <code>always_allow_discharge_limit</code>). <code>overrides</code> lists every
+parameter whose effective value differs from the configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">"overrides"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"peak_shaving.enabled"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"configured"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"effective"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>It is empty when nothing is overridden. A temporary suspension of peak shaving by evcc is not a
+parameter change and shows in <code>/peak-shaving</code> (<code>suspended_by</code>) instead.</p>
+<h3 id="inverters">Inverters<a class="headerlink" href="#inverters" title="Permanent link">¶</a></h3>
+<p>With several inverters every other endpoint reports them as <strong>one</strong> battery. <code>/inverters</code>
+lists their ids; <code>/inverter/{id}</code> returns the values of a single one - the same values the MQTT
+API publishes under <code>inverters/&lt;id&gt;/</code>. Each inverter reads them once per control cycle and keeps
+them, so a request never queries the inverter. Backend specific values (e.g. <code>em_mode</code> and
+<code>em_power</code> of a Fronius GEN24) are in <code>extra</code>.</p>
+<h3 id="mqtt-and-rest">MQTT and REST<a class="headerlink" href="#mqtt-and-rest" title="Permanent link">¶</a></h3>
+<p>Every value batcontrol publishes on MQTT is also available here. The mapping is listed in the
+<a href="../../development/dashboard-spec/#mqtt-and-rest">dashboard specification</a>.</p>
 <p>With <code>docs_enabled: true</code> a running instance serves its own interactive documentation at <code>/docs</code>
 (Swagger UI) and the raw schema at <code>/openapi.json</code>. Both are <strong>off by default</strong>: an installation
 does not need to describe its API to every visitor, and the same schema is rendered at the end of
@@ -911,6 +1039,9 @@ UI that works offline beats two that need the network.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># What is it doing, and why?</span>
 curl<span class="w"> </span>-s<span class="w"> </span>localhost:8080/api/v1/status<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.data.mode_label'</span>
 curl<span class="w"> </span>-s<span class="w"> </span>localhost:8080/api/v1/decision<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">'.data.status_text'</span>
+
+<span class="c1"># Cheapest slot of the next 24 hours</span>
+curl<span class="w"> </span>-s<span class="w"> </span>localhost:8080/api/v1/price/status<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">'.data.min'</span>
 
 <span class="c1"># The next six price slots</span>
 curl<span class="w"> </span>-s<span class="w"> </span><span class="s1">'localhost:8080/api/v1/forecast/price?limit=6'</span><span class="w"> </span><span class="se">\</span>

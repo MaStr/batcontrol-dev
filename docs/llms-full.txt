@@ -1985,6 +1985,10 @@ The rule switches themselves (`time_active`, `price_active`, `solar_cap_active`)
 
 Runtime changes are temporary and are not written back to the configuration file.
 
+### Runtime state in the REST API
+
+`GET /api/v1/peak-shaving` (MCP: `batcontrol_get_peak_shaving`) reports what peak shaving did in the last control cycle: whether it is switched on now, whether it ran or was suspended by evcc (`suspended_by`), the resulting PV charge limit in W (`charge_limit_w`, -1 = none) and the outcome and reason code of the peak shaving rule and of the solar (feed-in) rule. A value switched via MQTT also shows in `GET /api/v1/config` under `overrides`, next to the configured value. See [REST API](https://mastr.github.io/batcontrol/integrations/rest-api/index.md).
+
 ## The `allow_full_battery_after` Target Hour
 
 This parameter controls when the battery is **allowed** to be 100% full:
@@ -2789,25 +2793,54 @@ An error keeps the shape and carries a code instead of data:
 | ------------------ | ------ | ----------------------------------------------------------------------------------------------------------- |
 | `no_data_yet`      | 503    | batcontrol has not completed its first control cycle                                                        |
 | `forecast_expired` | 503    | every slot of the last forecast has passed - control cycles keep failing (e.g. the tariff provider is down) |
-| `not_found`        | 404    | unknown forecast series, or an empty decision journal                                                       |
+| `not_found`        | 404    | unknown forecast series or inverter id, or an empty decision journal                                        |
 | `unauthorized`     | 401    | `api.auth_token` is set and the bearer token was missing or wrong                                           |
 
 ## Endpoints
 
-| Endpoint                        | Returns                                                       |
-| ------------------------------- | ------------------------------------------------------------- |
-| `GET /api/v1/health`            | liveness, age of the last cycle, whether data exists yet      |
-| `GET /api/v1/version`           | version, build, runtime, forecast interval, timezone          |
-| `GET /api/v1/status`            | mode, control source, charge rate, overrides, next evaluation |
-| `GET /api/v1/battery`           | SoC, capacities, reserved energy, SoC limits                  |
-| `GET /api/v1/current`           | current price together with the SoC                           |
-| `GET /api/v1/forecast`          | all four forecast series on one slot grid                     |
-| `GET /api/v1/forecast/{series}` | `price`, `consumption`, `production` or `net_consumption`     |
-| `GET /api/v1/decision`          | the latest decision trace and its plain-language explanation  |
-| `GET /api/v1/decision/history`  | recent decisions from the in-memory journal                   |
-| `GET /api/v1/config`            | the runtime parameters behind the decisions                   |
+| Endpoint                             | Returns                                                                                                                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/v1/health`                 | liveness, age of the last cycle, whether data exists yet                                                                                                                                   |
+| `GET /api/v1/version`                | version, build, runtime, forecast interval, timezone                                                                                                                                       |
+| `GET /api/v1/status`                 | mode, control source, charge rate, overrides, next evaluation                                                                                                                              |
+| `GET /api/v1/battery`                | SoC, capacities, reserved energy (raw and capped to the battery), SoC limits                                                                                                               |
+| `GET /api/v1/current`                | current price together with the SoC                                                                                                                                                        |
+| `GET /api/v1/price/status`           | price statistics for the next 24 hours: current price and its rank, cheapest and most expensive slot, average, spread                                                                      |
+| `GET /api/v1/forecast`               | all four forecast series on one slot grid                                                                                                                                                  |
+| `GET /api/v1/forecast/{series}`      | `price`, `consumption`, `production` or `net_consumption`                                                                                                                                  |
+| `GET /api/v1/solar`                  | solar surplus indicators derived from the forecast (see [forecast metrics](https://mastr.github.io/batcontrol/integrations/forecast-metrics/index.md))                                     |
+| `GET /api/v1/decision`               | the latest decision trace and its plain-language explanation                                                                                                                               |
+| `GET /api/v1/decision/history`       | recent decisions from the in-memory journal                                                                                                                                                |
+| `GET /api/v1/peak-shaving`           | what [peak shaving](https://mastr.github.io/batcontrol/features/peak-shaving/index.md) did in the last cycle: active or suspended by evcc, resulting PV charge limit, outcome of its rules |
+| `GET /api/v1/inverters`              | the inverters by id                                                                                                                                                                        |
+| `GET /api/v1/inverter/{inverter_id}` | the values of one inverter, as read in the last control cycle                                                                                                                              |
+| `GET /api/v1/config`                 | the runtime parameters behind the decisions, and which of them are overridden at runtime                                                                                                   |
 
 Forecast endpoints accept `limit` and `offset` and report `total_count`, `has_more` and `next_offset`, so a long horizon can be paged.
+
+### Price status
+
+`/price/status` covers the **next 24 hours from the current slot**, independent of how far the optimizer looks ahead. Every value is per slot at the configured resolution (`interval_minutes`): `min` is the cheapest slot, so there is no separate "cheapest window". `rank` is the position of the current price in the window, 1 being the cheapest; equal prices share a rank. When the tariff provider's prices end before the 24 hours do, `complete` is `false` and `slot_count` says how many slots the statistics cover.
+
+### Runtime overrides in `/config`
+
+The fields of `/config` always show the value **in effect**. Several of them can change at runtime - via MQTT, through evcc, by the grid charge lock (which sets `max_charging_from_grid_limit` to 0) or by the control loop itself (it lowers `max_charging_from_grid_limit` below `always_allow_discharge_limit`). `overrides` lists every parameter whose effective value differs from the configuration file:
+
+```
+"overrides": {
+  "peak_shaving.enabled": { "configured": true, "effective": false }
+}
+```
+
+It is empty when nothing is overridden. A temporary suspension of peak shaving by evcc is not a parameter change and shows in `/peak-shaving` (`suspended_by`) instead.
+
+### Inverters
+
+With several inverters every other endpoint reports them as **one** battery. `/inverters` lists their ids; `/inverter/{id}` returns the values of a single one - the same values the MQTT API publishes under `inverters/<id>/`. Each inverter reads them once per control cycle and keeps them, so a request never queries the inverter. Backend specific values (e.g. `em_mode` and `em_power` of a Fronius GEN24) are in `extra`.
+
+### MQTT and REST
+
+Every value batcontrol publishes on MQTT is also available here. The mapping is listed in the [dashboard specification](https://mastr.github.io/batcontrol/development/dashboard-spec/#mqtt-and-rest).
 
 With `docs_enabled: true` a running instance serves its own interactive documentation at `/docs` (Swagger UI) and the raw schema at `/openapi.json`. Both are **off by default**: an installation does not need to describe its API to every visitor, and the same schema is rendered at the end of this page. Switch it on while you develop against the API. Swagger UI is served from the package rather than from a CDN, so it works on a box without internet access - which is also why there is no ReDoc: one documentation UI that works offline beats two that need the network.
 
@@ -2817,6 +2850,9 @@ With `docs_enabled: true` a running instance serves its own interactive document
 # What is it doing, and why?
 curl -s localhost:8080/api/v1/status | jq '.data.mode_label'
 curl -s localhost:8080/api/v1/decision | jq -r '.data.status_text'
+
+# Cheapest slot of the next 24 hours
+curl -s localhost:8080/api/v1/price/status | jq '.data.min'
 
 # The next six price slots
 curl -s 'localhost:8080/api/v1/forecast/price?limit=6' \
@@ -2888,21 +2924,26 @@ Drop the `headers` block when no token is configured. With the default `host: 12
 
 All read-only, all reporting values from the last completed control cycle.
 
-| Tool                                      | Answers                                                           |
-| ----------------------------------------- | ----------------------------------------------------------------- |
-| `batcontrol_get_status`                   | Which mode is active, who set it, when the next evaluation is due |
-| `batcontrol_get_battery`                  | SoC, capacities, reserved energy, SoC limits                      |
-| `batcontrol_get_current`                  | Current price together with the SoC                               |
-| `batcontrol_get_price_forecast`           | Price per slot in EUR/kWh                                         |
-| `batcontrol_get_solar_forecast`           | Expected PV production in Wh per slot                             |
-| `batcontrol_get_consumption_forecast`     | Expected household consumption in Wh per slot                     |
-| `batcontrol_get_net_consumption_forecast` | Consumption minus production; negative is surplus                 |
-| `batcontrol_get_decision`                 | Why the current mode was chosen, with the decisive rule           |
-| `batcontrol_list_decisions`               | Recent decisions from the in-memory journal                       |
-| `batcontrol_get_config`                   | The thresholds a decision has to be read against                  |
-| `batcontrol_get_version`                  | Version, runtime, forecast interval, timezone                     |
+| Tool                                      | Answers                                                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `batcontrol_get_status`                   | Which mode is active, who set it, when the next evaluation is due                                      |
+| `batcontrol_get_battery`                  | SoC, capacities, reserved energy, SoC limits                                                           |
+| `batcontrol_get_current`                  | Current price together with the SoC                                                                    |
+| `batcontrol_get_price_status`             | Cheapest and most expensive slot, rank of the current price, average and spread over the next 24 hours |
+| `batcontrol_get_price_forecast`           | Price per slot in EUR/kWh                                                                              |
+| `batcontrol_get_solar_forecast`           | Expected PV production in Wh per slot                                                                  |
+| `batcontrol_get_consumption_forecast`     | Expected household consumption in Wh per slot                                                          |
+| `batcontrol_get_net_consumption_forecast` | Consumption minus production; negative is surplus                                                      |
+| `batcontrol_get_solar`                    | Whether there is solar surplus, and how low the battery gets until PV takes over                       |
+| `batcontrol_get_peak_shaving`             | Whether peak shaving ran, was suspended by evcc, and which PV charge limit it set                      |
+| `batcontrol_list_inverters`               | The inverters by id                                                                                    |
+| `batcontrol_get_inverter`                 | The values of one inverter                                                                             |
+| `batcontrol_get_decision`                 | Why the current mode was chosen, with the decisive rule                                                |
+| `batcontrol_list_decisions`               | Recent decisions from the in-memory journal                                                            |
+| `batcontrol_get_config`                   | The thresholds a decision has to be read against                                                       |
+| `batcontrol_get_version`                  | Version, runtime, forecast interval, timezone                                                          |
 
-Forecast tools default to the next **24 hours** and page for more, so an assistant is not handed several hundred slots it has to pay for.
+Forecast tools default to the next **24 hours** and page for more, so an assistant is not handed several hundred slots it has to pay for. For "when is it cheapest" questions `batcontrol_get_price_status` answers in one small call without any paging.
 
 ## What it cannot tell you
 
@@ -3062,10 +3103,12 @@ Batcontrol publishes data to the following topic structure (assuming base topic 
 ### Battery Information
 
 - `house/batcontrol/SOC` - State of Charge in % (two decimal places, e.g., `69.00`)
-- `house/batcontrol/max_energy_capacity` - Maximum battery capacity in Wh
+- `house/batcontrol/max_energy_capacity` - Maximum battery capacity in Wh (reduced by max SOC)
+- `house/batcontrol/gross_energy_capacity` - Battery capacity in Wh without the max SOC reduction; SOC percentages refer to this value
 - `house/batcontrol/stored_energy_capacity` - Energy stored in battery in Wh
 - `house/batcontrol/stored_usable_energy_capacity` - Usable energy stored in battery in Wh (considering min SOC)
-- `house/batcontrol/reserved_energy_capacity` - Energy reserved for discharge in Wh
+- `house/batcontrol/reserved_energy_capacity` - Energy reserved for discharge in Wh. This is the raw demand for upcoming expensive hours and can exceed the battery
+- `house/batcontrol/reserved_energy_capacity_effective` - The reserved energy in Wh capped to what the battery can hold back: between min SOC and the lower of max SOC and `always_allow_discharge_limit`
 
 ### Solar Surplus Information
 
@@ -3825,7 +3868,7 @@ When using both batcontrol and evcc with Home Assistant:
 
 # Forecast Metrics
 
-`ForecastMetrics` is a stateless module that derives three battery indicators from the production/consumption forecast arrays and the current battery state. These indicators are published via MQTT and are intended to drive downstream automation decisions such as "should I run the heat pump now or save the battery for tomorrow's solar charge?"
+`ForecastMetrics` is a stateless module that derives three battery indicators from the production/consumption forecast arrays and the current battery state. These indicators are published via MQTT and the REST API (`GET /api/v1/solar`, MCP tool `batcontrol_get_solar`) and are intended to drive downstream automation decisions such as "should I run the heat pump now or save the battery for tomorrow's solar charge?"
 
 All three values are updated once per evaluation cycle (every 3 minutes by default). They are based on the same forecast window that the main optimizer uses, so their horizon is `min(max available price hours, max available solar hours)`.
 
@@ -3903,7 +3946,7 @@ ______________________________________________________________________
 | `{base}/pv_start_battery_wh`     | Wh   | No       | Battery level at next net-charging crossover       |
 | `{base}/forecast_min_battery_wh` | Wh   | No       | Minimum battery level over entire forecast horizon |
 
-All values are published after each evaluation cycle (together with the inverter control decision). See [MQTT API](https://mastr.github.io/batcontrol/integrations/mqtt-api/index.md) for the full topic reference and configuration options.
+All values are published after each evaluation cycle (together with the inverter control decision). See [MQTT API](https://mastr.github.io/batcontrol/integrations/mqtt-api/index.md) for the full topic reference and configuration options. The same values are available without MQTT from the [REST API](https://mastr.github.io/batcontrol/integrations/rest-api/index.md) at `GET /api/v1/solar`.
 
 ### Home Assistant Auto-Discovery
 
@@ -7349,15 +7392,30 @@ The dashboard is a **reader**. It polls, it renders, it never writes. Everything
 | Endpoint                     | Used for                                                              |
 | ---------------------------- | --------------------------------------------------------------------- |
 | `GET /api/v1/status`         | mode, control source, charge rate, last/next evaluation, online state |
-| `GET /api/v1/battery`        | SoC, capacities, reserved energy, SoC limits                          |
+| `GET /api/v1/battery`        | SoC, gross capacity, reserved energy (raw and capped), SoC limits     |
 | `GET /api/v1/current`        | current price, price unit, interval width, version                    |
-| `GET /api/v1/forecast/price` | 24 h price forecast for the sparkline and MIN/MAX/SPREAD              |
+| `GET /api/v1/price/status`   | MIN/MAX/SPREAD over the next 24 h                                     |
+| `GET /api/v1/forecast/price` | 24 h price forecast for the sparkline                                 |
 | `GET /api/v1/decision`       | decision text, reason, full trace                                     |
 | `GET /api/v1/version`        | version for the release link in the header                            |
 
 `GET /api/v1/forecast` returns all four series (price, consumption, production, net_consumption) on one slot grid, so the dashboard can fetch everything in one request instead of four. The dashboard uses it when it needs more than the price.
 
 Polling follows `next_evaluation` from `/api/v1/status` rather than a hard-coded interval, so the header countdown matches the real control cycle.
+
+### What the API computes and what the dashboard computes
+
+**Anything a second client would have to re-implement belongs in the service layer; pure presentation stays in the component.** A Home Assistant card, an MCP assistant or a script should not have to rebuild the 24 h price window, the gross capacity or the reservation cap to get the same numbers the dashboard shows - and two implementations of one rule drift apart.
+
+So the API delivers:
+
+- MIN/MAX/SPREAD/average/rank over the next 24 h (`/price/status`),
+- the gross capacity (`gross_energy_capacity`), instead of each client scaling `max_energy_capacity` back up by `max_soc`,
+- the reservation capped to the battery (`reserved_energy_capacity_effective`).
+
+Values MQTT needs as well are computed in the core (`runtime_state.py`) and published to both; values only the API needs (the price statistics) are computed in `web/service.py`.
+
+The dashboard keeps what is presentation: the sparkline's hourly means and glyphs, the box states of the SOC grid, the percent widths derived from the API's energies, formatting.
 
 ### Response shape
 
@@ -7437,7 +7495,7 @@ States, combinable:
 | `always_discharge` | `p > always_allow_discharge_limit_percent`                            | same states in purple (`#c77dff`, dark `#1d0b2b`), by overriding the `--cell-*` variables on `.cell.discharge` |
 | `free`             | otherwise                                                             | dark                                                                                                           |
 
-`reservedCapped = min(reserved_energy, capacity * (min(MAX_SOC, always_allow_discharge) - MIN_SOC))`. The reservation can exceed the battery, hence the cap. Every box the reservation reaches is hatched, including the blinking current one. Nothing above `always_allow_discharge` is ever hatched - discharging is always permitted there.
+`reservedCapped` is `reserved_energy_capacity_effective` from `/api/v1/battery`: `min(reserved_energy, capacity * (min(MAX_SOC, always_allow_discharge) - MIN_SOC))`, computed by the core (`runtime_state.cap_reserved_energy`). The reservation can exceed the battery, hence the cap; `capacity` is `gross_energy_capacity`. Every box the reservation reaches is hatched, including the blinking current one. Nothing above `always_allow_discharge` is ever hatched - discharging is always permitted there.
 
 Legend below the grid, with exactly these names: charged, free, locked (\<= MIN / > MAX), reserved (bright and dark variant), always_discharge, current.
 
@@ -7447,7 +7505,7 @@ Below that, as text: RESERVED (raw value, plus `-> max. x kWh up to always_allow
 
 - Current price large, in EUR/kWh, from `/api/v1/current`.
 - Sparkline over the next 24 h from hourly means, drawn with the block characters `_,.-~=#` equivalents (`U+2581` to `U+2588`), axis labels now / +12h / +24h.
-- MIN 24h and MAX 24h each with their time, **SPREAD 24h = max - min** (computed in the frontend), and **GRID_CHARGE delta = `min_dynamic_price_difference`**.
+- MIN 24h and MAX 24h each with their time and **SPREAD 24h = max - min**, all from `/api/v1/price/status`, and **GRID_CHARGE delta = `min_dynamic_price_difference`**.
 
 ## Look: green-screen terminal
 
@@ -7464,6 +7522,54 @@ Below that, as text: RESERVED (raw value, plus `-> max. x kWh up to always_allow
 - Before the first control cycle has completed the API answers 503; the dashboard says so instead of rendering zeros.
 - With `api.auth_token` configured, the dashboard asks for the token once on a 401, keeps it in `sessionStorage`, and re-asks when it stops working. It never needs the separate `api.mcp_auth_token`, which protects only `/mcp`.
 - `GET /api/v1/health` is never authenticated, so a container health check works without the token. The dashboard itself takes `online` from `/status`.
+
+## MQTT and REST
+
+Every value batcontrol publishes on MQTT has a counterpart in the REST API (and through it in MCP). Ratios that MQTT publishes twice - as `0..1` and as percent - appear once in each REST place: as percent in `/battery`, as ratio in `/config`. Timestamps are epoch seconds on MQTT and epoch milliseconds in REST.
+
+| MQTT topic                                                                                              | REST                                                                                                        |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `status`                                                                                                | `/health` (`stale`), `/status` (`online`)                                                                   |
+| `mode`                                                                                                  | `/status` `mode`                                                                                            |
+| `charge_rate`                                                                                           | `/status` `charge_rate`                                                                                     |
+| `limit_battery_charge_rate`                                                                             | `/status` `limit_battery_charge_rate`                                                                       |
+| `control_source`                                                                                        | `/status` `control_source`                                                                                  |
+| `api_override_active`                                                                                   | `/status` `api_override_active`                                                                             |
+| `discharge_blocked`                                                                                     | `/status` `discharge_blocked`                                                                               |
+| `grid_charge_locked`                                                                                    | `/status` `grid_charge_locked`                                                                              |
+| `evaluation_intervall`                                                                                  | `/status` `evaluation_interval_seconds`                                                                     |
+| `last_evaluation`                                                                                       | `/status` `last_evaluation`                                                                                 |
+| `decision`, `decision/attributes`                                                                       | `/decision` `status_text`, `event`                                                                          |
+| `SOC`                                                                                                   | `/battery` `soc`                                                                                            |
+| `max_energy_capacity`                                                                                   | `/battery` `max_energy_capacity`                                                                            |
+| `gross_energy_capacity`                                                                                 | `/battery` `gross_energy_capacity`                                                                          |
+| `stored_energy_capacity`                                                                                | `/battery` `stored_energy_capacity`                                                                         |
+| `stored_usable_energy_capacity`                                                                         | `/battery` `stored_usable_energy_capacity`                                                                  |
+| `reserved_energy_capacity`                                                                              | `/battery` `reserved_energy_capacity`                                                                       |
+| `reserved_energy_capacity_effective`                                                                    | `/battery` `reserved_energy_capacity_effective`                                                             |
+| `always_allow_discharge_limit_capacity`                                                                 | `/battery` `always_allow_discharge_limit_capacity`                                                          |
+| `always_allow_discharge_limit`, `..._percent`                                                           | `/config` `battery_control.always_allow_discharge_limit`, `/battery` `always_allow_discharge_limit_percent` |
+| `max_charging_from_grid_limit`, `..._percent`                                                           | `/config` `battery_control.max_charging_from_grid_limit`, `/battery` `max_charging_from_grid_limit_percent` |
+| `min_grid_charge_soc`, `..._percent`                                                                    | `/config` `battery_control.min_grid_charge_soc`                                                             |
+| `effective_min_grid_charge_soc`, `..._percent`                                                          | `/battery` `effective_min_grid_charge_soc_percent`                                                          |
+| `min_price_difference`                                                                                  | `/config` `battery_control.min_price_difference`                                                            |
+| `min_price_difference_rel`                                                                              | `/config` `battery_control.min_price_difference_rel`                                                        |
+| `min_dynamic_price_difference`                                                                          | `/current` and `/price/status` `min_dynamic_price_difference`                                               |
+| `production_offset`                                                                                     | `/config` `battery_control.production_offset_percent`                                                       |
+| `solar_active`                                                                                          | `/solar` `solar_active`                                                                                     |
+| `solar_surplus_wh`                                                                                      | `/solar` `solar_surplus_wh`                                                                                 |
+| `pv_start_battery_wh`                                                                                   | `/solar` `pv_start_battery_wh`                                                                              |
+| `forecast_min_battery_wh`                                                                               | `/solar` `forecast_min_battery_wh`                                                                          |
+| `peak_shaving/enabled`                                                                                  | `/config` `peak_shaving.enabled`, `/peak-shaving` `enabled`                                                 |
+| `peak_shaving/allow_full_battery_after`                                                                 | `/config` `peak_shaving.allow_full_battery_after`                                                           |
+| `peak_shaving/price_limit`                                                                              | `/config` `peak_shaving.price_limit` (null instead of MQTT's -1)                                            |
+| `peak_shaving/charge_limit`                                                                             | `/peak-shaving` `charge_limit_w`                                                                            |
+| `FCST/prices`, `FCST/production`, `FCST/consumption`, `FCST/net_consumption`                            | `/forecast`, `/forecast/{series}`                                                                           |
+| `inverters/<id>/SOC`, `stored_energy`, `stored_usable_energy`, `free_capacity`, `max_capacity`          | `/inverter/{id}`                                                                                            |
+| `inverters/<id>/capacity`, `min_soc`, `max_soc`, `max_grid_charge_rate`, `max_pv_charge_rate` (Fronius) | `/inverter/{id}`                                                                                            |
+| `inverters/<id>/em_mode`, `em_power` (Fronius)                                                          | `/inverter/{id}` `extra`                                                                                    |
+
+Not mapped on purpose: the Home Assistant discovery messages (`homeassistant/...`) are MQTT plumbing, not values, and the `*/set` topics are inputs - the REST API is read-only.
 
 ## Out of scope
 
@@ -7598,19 +7704,24 @@ The fallback is deliberate: securing the API must never silently leave MCP wide 
 
 ### The tools
 
-| Tool                                      | Answers                                                           | Paged |
-| ----------------------------------------- | ----------------------------------------------------------------- | ----- |
-| `batcontrol_get_status`                   | Which mode is active, who set it, when the next evaluation is due | -     |
-| `batcontrol_get_battery`                  | SoC, capacities, reserved energy, SoC limits                      | -     |
-| `batcontrol_get_current`                  | Current price together with SoC, in one call                      | -     |
-| `batcontrol_get_price_forecast`           | Price per slot in EUR/kWh                                         | yes   |
-| `batcontrol_get_solar_forecast`           | Expected PV production in Wh per slot                             | yes   |
-| `batcontrol_get_consumption_forecast`     | Expected consumption in Wh per slot                               | yes   |
-| `batcontrol_get_net_consumption_forecast` | Consumption minus production; negative = surplus                  | yes   |
-| `batcontrol_get_decision`                 | Why the current mode was chosen, with the decisive rule           | -     |
-| `batcontrol_list_decisions`               | Recent decisions from the journal                                 | yes   |
-| `batcontrol_get_config`                   | The thresholds a decision has to be read against                  | -     |
-| `batcontrol_get_version`                  | Version, runtime, forecast interval, timezone                     | -     |
+| Tool                                      | Answers                                                                   | Paged |
+| ----------------------------------------- | ------------------------------------------------------------------------- | ----- |
+| `batcontrol_get_status`                   | Which mode is active, who set it, when the next evaluation is due         | -     |
+| `batcontrol_get_battery`                  | SoC, capacities, reserved energy (raw and capped), SoC limits             | -     |
+| `batcontrol_get_current`                  | Current price together with SoC, in one call                              | -     |
+| `batcontrol_get_price_status`             | Cheapest/most expensive slot, rank, average and spread over the next 24 h | -     |
+| `batcontrol_get_price_forecast`           | Price per slot in EUR/kWh                                                 | yes   |
+| `batcontrol_get_solar_forecast`           | Expected PV production in Wh per slot                                     | yes   |
+| `batcontrol_get_consumption_forecast`     | Expected consumption in Wh per slot                                       | yes   |
+| `batcontrol_get_net_consumption_forecast` | Consumption minus production; negative = surplus                          | yes   |
+| `batcontrol_get_solar`                    | Solar surplus indicators derived from the forecast                        | -     |
+| `batcontrol_get_peak_shaving`             | Whether peak shaving ran, evcc suspension, resulting PV limit             | -     |
+| `batcontrol_list_inverters`               | The inverters by id                                                       | -     |
+| `batcontrol_get_inverter`                 | The values of one inverter                                                | -     |
+| `batcontrol_get_decision`                 | Why the current mode was chosen, with the decisive rule                   | -     |
+| `batcontrol_list_decisions`               | Recent decisions from the journal                                         | yes   |
+| `batcontrol_get_config`                   | The thresholds a decision has to be read against                          | -     |
+| `batcontrol_get_version`                  | Version, runtime, forecast interval, timezone                             | -     |
 
 Every tool is annotated `read_only_hint: true`, `destructive_hint: false`, `idempotent_hint: true`, `open_world_hint: false`. Annotations are hints, not guarantees - the guarantee is that no write tool exists.
 

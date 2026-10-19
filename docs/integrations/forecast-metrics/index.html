@@ -1738,7 +1738,8 @@
 <h1 id="forecast-metrics">Forecast Metrics<a class="headerlink" href="#forecast-metrics" title="Permanent link">&para;</a></h1>
 <p><code>ForecastMetrics</code> is a stateless module that derives three battery indicators
 from the production/consumption forecast arrays and the current battery state.
-These indicators are published via MQTT and are intended to drive downstream
+These indicators are published via MQTT and the REST API (<code>GET /api/v1/solar</code>,
+MCP tool <code>batcontrol_get_solar</code>) and are intended to drive downstream
 automation decisions such as "should I run the heat pump now or save the battery
 for tomorrow's solar charge?"</p>
 <p>All three values are updated once per evaluation cycle (every 3 minutes by
@@ -1889,7 +1890,8 @@ is fine. If it is near zero, defer to the next solar window.</p>
 </table>
 <p>All values are published after each evaluation cycle (together with the
 inverter control decision). See <a href="../mqtt-api/">MQTT API</a> for the full topic
-reference and configuration options.</p>
+reference and configuration options. The same values are available without
+MQTT from the <a href="../rest-api/">REST API</a> at <code>GET /api/v1/solar</code>.</p>
 <h3 id="home-assistant-auto-discovery">Home Assistant Auto-Discovery<a class="headerlink" href="#home-assistant-auto-discovery" title="Permanent link">&para;</a></h3>
 <p>The following HA entities are created automatically when
 <code>auto_discover_enable: true</code> is configured:</p>
