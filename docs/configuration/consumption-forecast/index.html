@@ -759,6 +759,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#creating-a-load-profile-from-a-fronius-solarweb-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Load Profile from a Fronius Solar.web Export
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2014,6 +2025,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#creating-a-load-profile-from-a-fronius-solarweb-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Load Profile from a Fronius Solar.web Export
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2509,6 +2531,50 @@ docker<span class="w"> </span><span class="nb">kill</span><span class="w"> </spa
 </ul>
 <h3 id="default-load-profile">Default Load Profile<a class="headerlink" href="#default-load-profile" title="Permanent link">&para;</a></h3>
 <p>If no load profile is specified, batcontrol uses <code>default_load_profile.csv</code> as a fallback.</p>
+<h3 id="creating-a-load-profile-from-a-fronius-solarweb-export">Creating a Load Profile from a Fronius Solar.web Export<a class="headerlink" href="#creating-a-load-profile-from-a-fronius-solarweb-export" title="Permanent link">&para;</a></h3>
+<p>If your inverter reports to Fronius Solar.web, you can turn your own consumption history into a
+load profile. Open the <strong><a href="../../assets/load-profile-generator.html">Load Profile Generator</a></strong>, select
+your export and download the finished <code>load_profile.csv</code>. The whole calculation runs in your
+browser, the file is not uploaded anywhere.</p>
+<p><strong>Export from Solar.web</strong></p>
+<ol>
+<li>Open your system in Solar.web and go to the analysis / history view.</li>
+<li>Choose the <strong>detailed</strong> view (5 minute resolution) and select the consumption
+   ("Energy balance / Consumption", column <code>Verbrauch</code>).</li>
+<li>Optional: add the Fronius Wattpilot energy (columns <code>Energie Wattpilot</code>).</li>
+<li>Export as Excel file (<code>.xlsx</code>). Use <strong>at least 12 months</strong>, so every season is covered.
+   Longer exports are fine and need a few seconds to calculate.</li>
+</ol>
+<p>Only <code>.xlsx</code> is supported. The resolution must be one hour or finer.</p>
+<p><strong>What the generator does</strong></p>
+<ul>
+<li>Sums the 5 minute values to hours and averages them per month, weekday and hour. This is the
+  <code>month,weekday,hour,energy</code> format described above (2016 rows, energy in Wh per hour).</li>
+<li>Treats hours without data as gaps and fills them with the average of the same weekday and hour
+  from other months. Hours with a few missing samples are scaled up. Gaps are never counted as zero.</li>
+<li><strong>Wallbox (optional switch):</strong> subtracts the selected columns (detected automatically for
+  <code>Energie Wattpilot</code>, other energy columns can be ticked manually) from the consumption.
+  The assumption is that the car is charged in the cheapest hours anyway, so it should not
+  inflate the base load forecast. Switch it off if the wallbox is part of your regular load.</li>
+<li><strong>Smoothing (optional switch):</strong> at the moment the wallbox switches on or off, the total
+  and the wallbox value often do not match for one interval. Those intervals are replaced
+  with the average of their neighbours. Threshold (default 1200 W) and window (default 2
+  intervals) can be changed.</li>
+</ul>
+<p><strong>Checking the result</strong></p>
+<p>The page shows plausibility checks next to the profile: covered period, months without
+data, share of filled gaps, wallbox share, spikes and whether the yearly value is within the
+usual range of a household. A heat map of the average week and a monthly chart help to spot
+errors at a glance (for example a night-time peak caused by a wrongly selected column).</p>
+<p><strong>Yearly consumption</strong></p>
+<p>The page calculates the yearly consumption of the profile with the same formula batcontrol
+uses for scaling. Treat this number as a lower bound and <strong>round it up generously</strong> before
+entering it as <code>annual_consumption</code>: the page suggests the calculated value plus 5 %, rounded
+up to the next 100 kWh. Consumers you plan to add (heat pump, electric car) have to be added
+on top. A forecast that is a little too high is usually cheaper than one that is too low, because
+batcontrol then keeps a reserve for the expensive hours.</p>
+<p>Copy <code>load_profile.csv</code> into your <code>config/</code> folder, set <code>annual_consumption</code> and send
+<code>SIGHUP</code> (see above) or restart batcontrol.</p>
 <hr />
 <h2 id="2-homeassistant-api-based-forecast">2. HomeAssistant API-Based Forecast<a class="headerlink" href="#2-homeassistant-api-based-forecast" title="Permanent link">&para;</a></h2>
 <p>The HomeAssistant API method provides <strong>dynamic consumption forecasting</strong> based on your actual historical consumption data. This is the most accurate method as it learns from your real usage patterns.</p>
