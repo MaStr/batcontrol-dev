@@ -1795,6 +1795,11 @@
 <li>energyforecast.de (total price mode)</li>
 </ul>
 <p>You can chose one and need to adjust the configuration.</p>
+<p>API tariff providers persist their latest raw response under the shared
+<code>cache/tariff/</code> directory. After a restart, a failed refresh can use that response
+until its original 12-hour TTL expires. Static tariff zones are still rebuilt
+from the current configuration. See <a href="../../getting-started/installation/#application-data-and-provider-caches">Application data and provider caches</a>
+for data paths and <code>--clear-cache</code>.</p>
 <div class="admonition info">
 <p class="admonition-title">Key names</p>
 <p>The credential is <code>api_token</code> and the endpoint is <code>url</code>, consistently across all
