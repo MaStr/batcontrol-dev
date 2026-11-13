@@ -876,6 +876,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#discharge-reserve-and-grid-recharge-use-different-comparisons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discharge reserve and grid recharge use different comparisons
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1504,6 +1515,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#discharge-reserve-and-grid-recharge-use-different-comparisons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discharge reserve and grid recharge use different comparisons
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1532,7 +1554,7 @@
   <h1>Price Difference Calculation</h1>
 
 <h2 id="understanding-min_price_difference-and-the-relative-approach">Understanding <code>min_price_difference</code> and the Relative Approach<a class="headerlink" href="#understanding-min_price_difference-and-the-relative-approach" title="Permanent link">&para;</a></h2>
-<p>In <a href="https://github.com/muexxl/batcontrol/issues/84">Issue #84</a>, the idea arose to make the parameter <code>min_price_difference</code> more flexible. Originally, it was a fixed absolute value, like <code>€0.03</code>, meaning Batcontrol would only consider future prices “high enough” if they exceeded the current price by at least <code>€0.03</code>. However, when prices vary a lot (e.g., from <code>€0.20</code> to <code>€1.00</code>), a fixed amount may not always make sense.</p>
+<p>In <a href="https://github.com/MaStr/batcontrol/issues/84">Issue #84</a>, the idea arose to make the parameter <code>min_price_difference</code> more flexible. Originally, it was a fixed absolute value, like <code>€0.03</code>, meaning Batcontrol would only consider future prices “high enough” if they exceeded the current price by at least <code>€0.03</code>. However, when prices vary a lot (e.g., from <code>€0.20</code> to <code>€1.00</code>), a fixed amount may not always make sense.</p>
 <p>This feature is introduced in version 0.4.0, but defaults to <code>0%</code> (disabled).</p>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
 <ol>
@@ -1571,6 +1593,20 @@
 <li><strong>Relative Plus Absolute</strong>: Scales automatically with the current price, ensuring Batcontrol’s logic remains balanced across a wide range of price levels.</li>
 </ul>
 <p>This change helps prevent overreacting at high prices (where a small amount like <code>€0.03</code> is negligible) and avoids unnecessary waiting at low prices (where a large absolute amount might never occur).</p>
+<h2 id="discharge-reserve-and-grid-recharge-use-different-comparisons">Discharge reserve and grid recharge use different comparisons<a class="headerlink" href="#discharge-reserve-and-grid-recharge-use-different-comparisons" title="Permanent link">&para;</a></h2>
+<p>The two decisions that depend on future prices do not look at the same slots. Both start from the current price and use the dynamic minimum price difference (<code>max(min_price_difference, min_price_difference_rel * current price)</code>).</p>
+<p><strong>Discharge reserve</strong> (should the battery keep its energy instead of discharging?):</p>
+<ul>
+<li>The look-ahead window ends at the first slot whose price is lower than the current price by at least the dynamic minimum price difference (<code>price &lt;= current price - min difference</code>).</li>
+<li>Within that window <strong>every</strong> slot with a price above the current price counts, with no minimum difference. The net consumption of these slots (reduced by PV production in earlier slots) is reserved.</li>
+<li>Discharge is allowed only while the usable stored energy exceeds this reserve.</li>
+</ul>
+<p><strong>Grid recharge</strong> (should the battery be charged from the grid?):</p>
+<ul>
+<li>The look-ahead window ends at the first slot whose price is lower than or equal to the current price. With <code>soften_price_difference_on_charging</code> enabled, the slot must be lower by <code>min_price_difference / soften_price_difference_on_charging_factor</code> instead.</li>
+<li>Within that window only slots <strong>more expensive than the current price plus the dynamic minimum price difference</strong> count. Their net consumption (reduced by PV production in earlier slots), minus the usable stored energy, is the energy to charge.</li>
+</ul>
+<p><strong>Consequence:</strong> energy can be held back (no discharge) without any grid charging happening. A slot that is only slightly more expensive than the current one reserves energy for the discharge decision but is too close in price to justify buying energy from the grid.</p>
 
 
 

@@ -2178,7 +2178,7 @@
 <h3 id="1-electricity-price-forecast">1. Electricity Price Forecast<a class="headerlink" href="#1-electricity-price-forecast" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Source</strong>: Dynamic tariff providers (Tibber, aWATTar, evcc, energyforecast.de, static tariff zones) — see <a href="../../configuration/dynamic-tariff-provider/">Dynamic Tariff Provider</a></li>
-<li><strong>Data</strong>: Hourly electricity prices for the next 24-48 hours</li>
+<li><strong>Data</strong>: Electricity prices for the next 24-48 hours, in 15- or 60-minute slots depending on <code>time_resolution_minutes</code></li>
 <li><strong>Purpose</strong>: Identifies when electricity is cheapest for charging</li>
 </ul>
 <h3 id="2-solar-production-forecast">2. Solar Production Forecast<a class="headerlink" href="#2-solar-production-forecast" title="Permanent link">&para;</a></h3>
@@ -2232,15 +2232,16 @@
 <ul>
 <li><strong>When</strong>: Current prices are significantly lower than future prices</li>
 <li><strong>Behavior</strong>:</li>
-<li>Battery charges from grid at configured rate (<code>max_grid_charge_rate</code>)</li>
-<li>Charging stops at <code>max_charging_from_grid_limit</code> (typically 89%)</li>
+<li>Battery charges from grid at a calculated rate: the required energy divided by the remaining time, multiplied by <code>charge_rate_multiplier</code>, but at least 500 W. <code>max_grid_charge_rate</code> is only the upper bound</li>
+<li>Charging stops at <code>max_charging_from_grid_limit</code> (default: 80%)</li>
 <li><strong>Calculation</strong>: Estimates required energy for upcoming expensive hours</li>
-<li><strong>Efficiency</strong>: Accounts for 10-20% charge/discharge losses</li>
+<li><strong>Losses</strong>: Charge/discharge losses are not modelled as energy. They are only approximated: <code>min_price_difference</code> has to cover them economically, and <code>charge_rate_multiplier</code> raises the charge power</li>
 </ul>
 <h2 id="price-based-decision-making">Price-Based Decision Making<a class="headerlink" href="#price-based-decision-making" title="Permanent link">&para;</a></h2>
 <h3 id="key-parameters">Key Parameters<a class="headerlink" href="#key-parameters" title="Permanent link">&para;</a></h3>
 <p><strong><code>min_price_difference</code></strong> (absolute): Minimum price difference in Euro to justify grid charging
-- Example: 0.05 means current price must be ≥5 cents lower than future price</p>
+- Example: 0.05 means current price must be ≥5 cents lower than future price
+- It also ends the look-ahead window used for the discharge reserve, see <a href="../../features/price-difference-calculation/#discharge-reserve-and-grid-recharge-use-different-comparisons">Price Difference Calculation</a></p>
 <p><strong><code>min_price_difference_rel</code></strong> (relative): Percentage-based price difference threshold
 - Example: 0.10 means current price must be ≥10% lower than future price
 - Helps avoid inefficient charging during high-price periods</p>

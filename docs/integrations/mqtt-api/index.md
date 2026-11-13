@@ -270,7 +270,7 @@ The forecast topics (`/FCST/*`) publish JSON data with the following structure:
 Where:
 
 - `time_start` - Unix timestamp for start of the interval
-- `time_end` - Unix timestamp for end of the interval (15 or 60 minutes later, depending on `general.time_resolution_minutes`)
+- `time_end` - Unix timestamp for end of the interval (15 or 60 minutes later, depending on `time_resolution_minutes`)
 - `value` - Forecasted value for that interval: Wh for production/consumption/net_consumption, EUR for prices
 - `power_w` - Only present for production/consumption/net_consumption: the same quantity expressed as average power in W (`value / interval_hours`), so it stays comparable regardless of the configured interval length
 

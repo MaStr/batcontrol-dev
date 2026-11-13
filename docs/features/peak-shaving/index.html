@@ -2109,7 +2109,7 @@ do not want the feature.</p>
 <td><code>price_limit</code></td>
 <td>float</td>
 <td>unset (<code>None</code>)</td>
-<td>Price threshold in Euro/kWh. The price rule only acts when a value is configured (e.g. <code>0.05</code>). Set <code>-1</code> to disable the price component explicitly.</td>
+<td>Price threshold in Euro/kWh. The price rule only acts when a value is configured (e.g. <code>0.05</code>). Set <code>-1</code> to disable the price component explicitly. The shipped config template sets <code>0.05</code>, so with <code>price_active: true</code> the price rule is active for anyone starting from the template.</td>
 </tr>
 <tr>
 <td><code>feed_in_limit_w</code></td>
@@ -2166,14 +2166,14 @@ value. See <a href="../../integrations/rest-api/">REST API</a>.</p>
 <h2 id="the-allow_full_battery_after-target-hour">The <code>allow_full_battery_after</code> Target Hour<a class="headerlink" href="#the-allow_full_battery_after-target-hour" title="Permanent link">&para;</a></h2>
 <p>This parameter controls when the battery is <strong>allowed</strong> to be 100% full:</p>
 <ul>
-<li><strong>Before this hour:</strong> the PV charge rate may be limited (depending on mode).</li>
+<li><strong>Before this hour:</strong> the PV charge rate may be limited (depending on which rules are active).</li>
 <li><strong>At or after this hour:</strong> no limit is applied -- the battery charges as fast as possible.</li>
 </ul>
-<p>The target hour applies globally to <strong>all three modes</strong>. Set it to the hour by which your PV system typically produces enough to fill the battery. For many Central European systems <code>14</code> (2 PM) is a good starting point; adjust based on your panel orientation and local conditions.</p>
+<p>The target hour applies to the time rule and the price rule. The solar cap rule deliberately ignores it (see <a href="#priority-rule-floor-overrides-caps">Priority Rule: Floor Overrides Caps</a>). Setting <code>allow_full_battery_after: 0</code> switches the time and price rule off entirely, because every hour is "at or after" 0. Set it to the hour by which your PV system typically produces enough to fill the battery. For many Central European systems <code>14</code> (2 PM) is a good starting point; adjust based on your panel orientation and local conditions.</p>
 <h2 id="rule-switches">Rule Switches<a class="headerlink" href="#rule-switches" title="Permanent link">&para;</a></h2>
 <p>Peak shaving has three independent rules that can be enabled or disabled via the <code>time_active</code>, <code>price_active</code>, and <code>solar_cap_active</code> switches:</p>
 <h3 id="time_active-target-time-rule"><code>time_active</code> -- Target-Time Rule<a class="headerlink" href="#time_active-target-time-rule" title="Permanent link">&para;</a></h3>
-<p>Distributes the remaining free battery capacity evenly over the slots between now and <code>allow_full_battery_after</code>, using a <strong>counter-linear ramp</strong>. The allowed charge rate starts low and increases as the target hour approaches, which mirrors the typical PV generation curve that rises towards midday.</p>
+<p>Distributes the remaining free battery capacity over the slots between now and <code>allow_full_battery_after</code>, using a <strong>counter-linear ramp</strong>. The distribution is not even: slot k gets weight k+1, so the allowed charge rate starts low and increases towards the target hour, which mirrors the typical PV generation curve that rises towards midday.</p>
 <p><strong>Formula:</strong></p>
 <div class="highlight"><pre><span></span><code>slots_remaining  = n  (slots until allow_full_battery_after)
 pv_surplus       = sum of max(production - consumption, 0) per remaining slot
@@ -2413,6 +2413,7 @@ where it matters, and the example day reaches zero curtailment.</p>
 </tr>
 </tbody>
 </table>
+<p>Once the battery reaches <code>always_allow_discharge_limit</code>, the limits of the time and price rule are dropped. The remaining capacity above that SoC is therefore charged without a limit, even before the target hour.</p>
 <h2 id="evcc-interaction">evcc Interaction<a class="headerlink" href="#evcc-interaction" title="Permanent link">&para;</a></h2>
 <p>When an EV charger is managed by <a href="../../integrations/evcc-connection/">evcc</a>:</p>
 <ul>

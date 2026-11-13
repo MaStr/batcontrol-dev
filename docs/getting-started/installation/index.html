@@ -2122,7 +2122,7 @@ all configuration values.</p>
 <p><strong>Configure your tariff provider.</strong> If you use a dynamic provider (Tibber, aWATTar, etc.), set the correct type and API key. For a flat rate, use <code>tariff_zones</code> with a single zone price — batcontrol will still run peak shaving.</p>
 </li>
 <li>
-<p><strong>Review battery charge limits.</strong> The defaults (<code>max_charging_from_grid_limit: 89%</code>, <code>always_allow_discharge_limit: 90%</code>) are conservative starting values. Adjust them to match your usage patterns after a few days of observation.</p>
+<p><strong>Review battery charge limits.</strong> The defaults (<code>max_charging_from_grid_limit: 80%</code>, <code>always_allow_discharge_limit: 90%</code>) are conservative starting values. Adjust them to match your usage patterns after a few days of observation.</p>
 </li>
 <li>
 <p><strong>Enable peak shaving</strong> (optional). If your PV installation frequently reaches full battery charge before midday, enable peak shaving to spread the charging and keep buffer capacity for the afternoon. Requires <code>peak_shaving.enabled: true</code>. See <a href="../../features/peak-shaving/">Peak Shaving</a>.</p>

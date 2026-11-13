@@ -239,7 +239,7 @@ After the first successful start, work through this in order:
 1. **Switch to your real inverter.** Edit `config/batcontrol_config.yaml`, change `inverter.type` from `dummy` to `fronius_gen24` (or `fronius-modbus`), and add your inverter address and credentials.
 1. **Set your annual consumption.** Update `consumption_forecast.csv.annual_consumption` with your actual value in kWh. This scales the default load profile to your household.
 1. **Configure your tariff provider.** If you use a dynamic provider (Tibber, aWATTar, etc.), set the correct type and API key. For a flat rate, use `tariff_zones` with a single zone price — batcontrol will still run peak shaving.
-1. **Review battery charge limits.** The defaults (`max_charging_from_grid_limit: 89%`, `always_allow_discharge_limit: 90%`) are conservative starting values. Adjust them to match your usage patterns after a few days of observation.
+1. **Review battery charge limits.** The defaults (`max_charging_from_grid_limit: 80%`, `always_allow_discharge_limit: 90%`) are conservative starting values. Adjust them to match your usage patterns after a few days of observation.
 1. **Enable peak shaving** (optional). If your PV installation frequently reaches full battery charge before midday, enable peak shaving to spread the charging and keep buffer capacity for the afternoon. Requires `peak_shaving.enabled: true`. See [Peak Shaving](https://mastr.github.io/batcontrol/features/peak-shaving/index.md).
 1. **Connect to Home Assistant** (optional). Enable the MQTT API to get real-time state, price, and forecast data as Home Assistant entities, and to override battery limits at runtime. See [MQTT API](https://mastr.github.io/batcontrol/integrations/mqtt-api/index.md).
 1. **Connect evcc** (optional). If you charge an electric vehicle, the evcc integration can hold battery discharge while the car is charging. See [evcc Connection](https://mastr.github.io/batcontrol/integrations/evcc-connection/index.md).
@@ -308,7 +308,7 @@ Batcontrol combines three critical forecasts to make intelligent decisions:
 ### 1. Electricity Price Forecast
 
 - **Source**: Dynamic tariff providers (Tibber, aWATTar, evcc, energyforecast.de, static tariff zones) — see [Dynamic Tariff Provider](https://mastr.github.io/batcontrol/configuration/dynamic-tariff-provider/index.md)
-- **Data**: Hourly electricity prices for the next 24-48 hours
+- **Data**: Electricity prices for the next 24-48 hours, in 15- or 60-minute slots depending on `time_resolution_minutes`
 - **Purpose**: Identifies when electricity is cheapest for charging
 
 ### 2. Solar Production Forecast
@@ -367,10 +367,10 @@ Based on the forecasts and current battery state, batcontrol puts your inverter 
 
 - **When**: Current prices are significantly lower than future prices
 - **Behavior**:
-- Battery charges from grid at configured rate (`max_grid_charge_rate`)
-- Charging stops at `max_charging_from_grid_limit` (typically 89%)
+- Battery charges from grid at a calculated rate: the required energy divided by the remaining time, multiplied by `charge_rate_multiplier`, but at least 500 W. `max_grid_charge_rate` is only the upper bound
+- Charging stops at `max_charging_from_grid_limit` (default: 80%)
 - **Calculation**: Estimates required energy for upcoming expensive hours
-- **Efficiency**: Accounts for 10-20% charge/discharge losses
+- **Losses**: Charge/discharge losses are not modelled as energy. They are only approximated: `min_price_difference` has to cover them economically, and `charge_rate_multiplier` raises the charge power
 
 ## Price-Based Decision Making
 
@@ -379,6 +379,7 @@ Based on the forecasts and current battery state, batcontrol puts your inverter 
 **`min_price_difference`** (absolute): Minimum price difference in Euro to justify grid charging
 
 - Example: 0.05 means current price must be ≥5 cents lower than future price
+- It also ends the look-ahead window used for the discharge reserve, see [Price Difference Calculation](https://mastr.github.io/batcontrol/features/price-difference-calculation/#discharge-reserve-and-grid-recharge-use-different-comparisons)
 
 **`min_price_difference_rel`** (relative): Percentage-based price difference threshold
 
@@ -556,7 +557,7 @@ battery_control:
   min_price_difference: 0.05 
   min_price_difference_rel: 0.10
   always_allow_discharge_limit: 0.90
-  max_charging_from_grid_limit: 0.89
+  max_charging_from_grid_limit: 0.80
   min_grid_charge_soc: 0.55 # optional: grid-charge to this SoC before expensive slots
   grid_charge_target_strategy: fixed # optional: fixed or forecast
   min_recharge_amount: 100
@@ -582,7 +583,7 @@ To also preserve this target as reserved energy during cheap/pre-expensive windo
 
 If `min_grid_charge_soc` is higher than `max_charging_from_grid_limit`, grid charging cannot reach the configured minimum SoC target. Batcontrol will log a warning in this case; increase `max_charging_from_grid_limit` or lower `min_grid_charge_soc` so the settings correlate.
 
-`min_recharge_amount` controls the minimum amount of Wh is needed to be recharged before batcontrol activates battery charging.
+`min_recharge_amount` is the minimum amount of energy (Wh) that must be recharged before batcontrol activates battery charging. Once the required recharge energy reaches this minimum, batcontrol adds the same amount on top of the energy to charge, so it does not get stuck right at the threshold.
 
 ## Battery Control Expert Tuning Parameters
 
@@ -595,6 +596,7 @@ battery_control_expert:
   round_price_digits: 4
   production_offset_percent: 1.0
   preserve_min_grid_charge_soc: false
+  market_price_refresh_time: "12:30"
 ```
 
 These expert parameters allow fine-tuning of Batcontrol's behavior. See [Battery Control Expert](https://mastr.github.io/batcontrol/features/battery-control-expert/index.md) for detailed explanations of each parameter:
@@ -608,6 +610,7 @@ These expert parameters allow fine-tuning of Batcontrol's behavior. See [Battery
 | `round_price_digits`                         | integer | 4       | Decimal places for price rounding in comparisons                                                                                                                 |
 | `production_offset_percent`                  | float   | 1.0     | Multiplier to adjust solar production forecast (1.0 = no change, 0.8 = 80%, etc.)                                                                                |
 | `preserve_min_grid_charge_soc`               | boolean | false   | Also preserve `min_grid_charge_soc` as reserved battery energy during cheap/pre-expensive windows                                                                |
+| `market_price_refresh_time`                  | string  | "12:30" | UTC time ("HH:MM") of the daily forced price refresh that picks up newly published next-day prices. An invalid value aborts startup                              |
 
 ## General options
 
@@ -2059,16 +2062,16 @@ peak_shaving:
 
 ### Parameter Reference
 
-| Parameter                  | Type  | Default        | Description                                                                                                                                         |
-| -------------------------- | ----- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enabled`                  | bool  | `false`        | Master switch for peak shaving                                                                                                                      |
-| `time_active`              | bool  | `true`         | Enable target-time rule (spread charging until `allow_full_battery_after`)                                                                          |
-| `price_active`             | bool  | `true`         | Enable price rule (reserve capacity for cheap slots)                                                                                                |
-| `solar_cap_active`         | bool  | `false`        | Enable solar feed-in limit rule (absorb PV above `feed_in_limit_w`)                                                                                 |
-| `allow_full_battery_after` | int   | `14`           | Target hour (0-23) for the time rule                                                                                                                |
-| `price_limit`              | float | unset (`None`) | Price threshold in Euro/kWh. The price rule only acts when a value is configured (e.g. `0.05`). Set `-1` to disable the price component explicitly. |
-| `feed_in_limit_w`          | int   | `0`            | Absolute feed-in power limit in watts (solar rule). Formula: `0.6 * kWp * 1000`. Set to `0` to disable.                                             |
-| `feed_in_limit_headroom`   | float | `1.0`          | Safety factor (>= 1.0) on the forecast surplus (solar rule). Recommended: `1.1` if clipping is observed.                                            |
+| Parameter                  | Type  | Default        | Description                                                                                                                                                                                                                                                                               |
+| -------------------------- | ----- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`                  | bool  | `false`        | Master switch for peak shaving                                                                                                                                                                                                                                                            |
+| `time_active`              | bool  | `true`         | Enable target-time rule (spread charging until `allow_full_battery_after`)                                                                                                                                                                                                                |
+| `price_active`             | bool  | `true`         | Enable price rule (reserve capacity for cheap slots)                                                                                                                                                                                                                                      |
+| `solar_cap_active`         | bool  | `false`        | Enable solar feed-in limit rule (absorb PV above `feed_in_limit_w`)                                                                                                                                                                                                                       |
+| `allow_full_battery_after` | int   | `14`           | Target hour (0-23) for the time rule                                                                                                                                                                                                                                                      |
+| `price_limit`              | float | unset (`None`) | Price threshold in Euro/kWh. The price rule only acts when a value is configured (e.g. `0.05`). Set `-1` to disable the price component explicitly. The shipped config template sets `0.05`, so with `price_active: true` the price rule is active for anyone starting from the template. |
+| `feed_in_limit_w`          | int   | `0`            | Absolute feed-in power limit in watts (solar rule). Formula: `0.6 * kWp * 1000`. Set to `0` to disable.                                                                                                                                                                                   |
+| `feed_in_limit_headroom`   | float | `1.0`          | Safety factor (>= 1.0) on the forecast surplus (solar rule). Recommended: `1.1` if clipping is observed.                                                                                                                                                                                  |
 
 **Removed in 0.10.0:** The old `mode` parameter (`time` / `price` / `combined`) is no longer supported; a configuration containing it is rejected at startup. Use the switches above instead (`time` = `time_active` only, `price` = `price_active` only, `combined` = both).
 
@@ -2094,10 +2097,10 @@ Runtime changes are temporary and are not written back to the configuration file
 
 This parameter controls when the battery is **allowed** to be 100% full:
 
-- **Before this hour:** the PV charge rate may be limited (depending on mode).
+- **Before this hour:** the PV charge rate may be limited (depending on which rules are active).
 - **At or after this hour:** no limit is applied -- the battery charges as fast as possible.
 
-The target hour applies globally to **all three modes**. Set it to the hour by which your PV system typically produces enough to fill the battery. For many Central European systems `14` (2 PM) is a good starting point; adjust based on your panel orientation and local conditions.
+The target hour applies to the time rule and the price rule. The solar cap rule deliberately ignores it (see [Priority Rule: Floor Overrides Caps](#priority-rule-floor-overrides-caps)). Setting `allow_full_battery_after: 0` switches the time and price rule off entirely, because every hour is "at or after" 0. Set it to the hour by which your PV system typically produces enough to fill the battery. For many Central European systems `14` (2 PM) is a good starting point; adjust based on your panel orientation and local conditions.
 
 ## Rule Switches
 
@@ -2105,7 +2108,7 @@ Peak shaving has three independent rules that can be enabled or disabled via the
 
 ### `time_active` -- Target-Time Rule
 
-Distributes the remaining free battery capacity evenly over the slots between now and `allow_full_battery_after`, using a **counter-linear ramp**. The allowed charge rate starts low and increases as the target hour approaches, which mirrors the typical PV generation curve that rises towards midday.
+Distributes the remaining free battery capacity over the slots between now and `allow_full_battery_after`, using a **counter-linear ramp**. The distribution is not even: slot k gets weight k+1, so the allowed charge rate starts low and increases towards the target hour, which mirrors the typical PV generation curve that rises towards midday.
 
 **Formula:**
 
@@ -2268,6 +2271,8 @@ Peak shaving cap rules (time and price) are automatically bypassed in the follow
 | evcc is actively charging the EV                               | Bypassed            | Not applied                                                                                  |
 | EV connected in PV-surplus mode (evcc: `pv`, `minpv`, `smart`) | Bypassed            | Not applied                                                                                  |
 | `price_limit` not configured                                   | Price rule inactive | Not affected                                                                                 |
+
+Once the battery reaches `always_allow_discharge_limit`, the limits of the time and price rule are dropped. The remaining capacity above that SoC is therefore charged without a limit, even before the target hour.
 
 ## evcc Interaction
 
@@ -2625,13 +2630,13 @@ In optimal conditions, your system might consistently outperform forecasts. A sl
 
 Assume:
 
-- Forecasted solar production: 5,000 W
+- Forecasted solar production in a slot: 5,000 Wh
 - `production_offset_percent: 0.8` (winter mode)
 
 Then:
 
-- **Adjusted forecast**: 5,000 W × 0.8 = 4,000 W
-- Batcontrol will base its decisions on 4,000 W instead of 5,000 W
+- **Adjusted forecast**: 5,000 Wh × 0.8 = 4,000 Wh
+- Batcontrol will base its decisions on 4,000 Wh instead of 5,000 Wh for that slot
 
 This conservative approach prevents Batcontrol from over-planning battery discharge based on overly optimistic solar forecasts.
 
@@ -2640,14 +2645,32 @@ This conservative approach prevents Batcontrol from over-planning battery discha
 When `production_offset_percent` differs from `1.0`, Batcontrol logs the adjustment:
 
 ```
-Production forecast adjusted by 80% (factor: 0.8)
+Production offset active: 80.0% (multiplier: 0.800)
 ```
 
 This helps you verify that your offset setting is being applied correctly.
 
+# Market Price Refresh Time
+
+- Config option: `market_price_refresh_time`
+- Default: `"12:30"`
+
+## market_price_refresh_time
+
+Once a day batcontrol forces a refresh of the dynamic tariff prices, regardless of what the price cache holds, to pick up newly published next-day prices (for example EPEX spot prices, published around 12:00 UTC).
+
+```
+battery_control_expert:
+  market_price_refresh_time: "12:30"
+```
+
+- The value is a time of day as `"HH:MM"` in **UTC**, not in your local time zone.
+- The value is validated at startup. An invalid value (for example `"25:00"` or `"12.30"`) aborts startup with a `ValueError`.
+- When the refresh runs, batcontrol logs `Hard price refresh at HH:MM UTC - fetching fresh market prices`.
+
 ## Understanding `min_price_difference` and the Relative Approach
 
-In [Issue #84](https://github.com/muexxl/batcontrol/issues/84), the idea arose to make the parameter `min_price_difference` more flexible. Originally, it was a fixed absolute value, like `€0.03`, meaning Batcontrol would only consider future prices “high enough” if they exceeded the current price by at least `€0.03`. However, when prices vary a lot (e.g., from `€0.20` to `€1.00`), a fixed amount may not always make sense.
+In [Issue #84](https://github.com/MaStr/batcontrol/issues/84), the idea arose to make the parameter `min_price_difference` more flexible. Originally, it was a fixed absolute value, like `€0.03`, meaning Batcontrol would only consider future prices “high enough” if they exceeded the current price by at least `€0.03`. However, when prices vary a lot (e.g., from `€0.20` to `€1.00`), a fixed amount may not always make sense.
 
 This feature is introduced in version 0.4.0, but defaults to `0%` (disabled).
 
@@ -2681,6 +2704,23 @@ Batcontrol then takes **whichever value is larger**—the absolute amount or the
 - **Relative Plus Absolute**: Scales automatically with the current price, ensuring Batcontrol’s logic remains balanced across a wide range of price levels.
 
 This change helps prevent overreacting at high prices (where a small amount like `€0.03` is negligible) and avoids unnecessary waiting at low prices (where a large absolute amount might never occur).
+
+## Discharge reserve and grid recharge use different comparisons
+
+The two decisions that depend on future prices do not look at the same slots. Both start from the current price and use the dynamic minimum price difference (`max(min_price_difference, min_price_difference_rel * current price)`).
+
+**Discharge reserve** (should the battery keep its energy instead of discharging?):
+
+- The look-ahead window ends at the first slot whose price is lower than the current price by at least the dynamic minimum price difference (`price <= current price - min difference`).
+- Within that window **every** slot with a price above the current price counts, with no minimum difference. The net consumption of these slots (reduced by PV production in earlier slots) is reserved.
+- Discharge is allowed only while the usable stored energy exceeds this reserve.
+
+**Grid recharge** (should the battery be charged from the grid?):
+
+- The look-ahead window ends at the first slot whose price is lower than or equal to the current price. With `soften_price_difference_on_charging` enabled, the slot must be lower by `min_price_difference / soften_price_difference_on_charging_factor` instead.
+- Within that window only slots **more expensive than the current price plus the dynamic minimum price difference** count. Their net consumption (reduced by PV production in earlier slots), minus the usable stored energy, is the energy to charge.
+
+**Consequence:** energy can be held back (no discharge) without any grid charging happening. A slot that is only slightly more expensive than the current one reserves energy for the discharge decision but is too close in price to justify buying energy from the grid.
 
 # Understanding the Decision Sensor
 
@@ -3342,7 +3382,7 @@ The forecast topics (`/FCST/*`) publish JSON data with the following structure:
 Where:
 
 - `time_start` - Unix timestamp for start of the interval
-- `time_end` - Unix timestamp for end of the interval (15 or 60 minutes later, depending on `general.time_resolution_minutes`)
+- `time_end` - Unix timestamp for end of the interval (15 or 60 minutes later, depending on `time_resolution_minutes`)
 - `value` - Forecasted value for that interval: Wh for production/consumption/net_consumption, EUR for prices
 - `power_w` - Only present for production/consumption/net_consumption: the same quantity expressed as average power in W (`value / interval_hours`), so it stays comparable regardless of the configured interval length
 
@@ -7917,7 +7957,7 @@ The scenario below extends the test fixture in `tests/batcontrol/web/conftest.py
 | --------------- | ------------------------------------------------------------------------------------- |
 | Interval        | 60 minutes                                                                            |
 | Battery         | 11000 Wh capacity, SoC 87.4 %, 9614 Wh stored, 8844 Wh usable, 1500 Wh reserved       |
-| SoC limits      | inverter min 7 %, max 100 %; always_allow_discharge 90 %; max_charging_from_grid 89 % |
+| SoC limits      | inverter min 7 %, max 100 %; always_allow_discharge 90 %; max_charging_from_grid 80 % |
 | Mode            | 10 (allow discharge), set by `optimizer`                                              |
 | Price forecast  | slot 0: 0.308, slot 1: 0.254, slot 2: 0.201, slot 3: 0.350 EUR/kWh                    |
 | Production      | 0, 120, 900, 1500 Wh per slot                                                         |

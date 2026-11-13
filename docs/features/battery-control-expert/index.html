@@ -1538,17 +1538,32 @@ Over time, solar panels degrade slightly. If your panels are particularly dirty 
 In optimal conditions, your system might consistently outperform forecasts. A slight increase can help maximize battery charging from available solar energy.</p>
 <h3 id="example-impact">Example Impact<a class="headerlink" href="#example-impact" title="Permanent link">&para;</a></h3>
 <p>Assume:
-- Forecasted solar production: 5,000 W
+- Forecasted solar production in a slot: 5,000 Wh
 - <code>production_offset_percent: 0.8</code> (winter mode)</p>
 <p>Then:
-- <strong>Adjusted forecast</strong>: 5,000 W × 0.8 = 4,000 W
-- Batcontrol will base its decisions on 4,000 W instead of 5,000 W</p>
+- <strong>Adjusted forecast</strong>: 5,000 Wh × 0.8 = 4,000 Wh
+- Batcontrol will base its decisions on 4,000 Wh instead of 5,000 Wh for that slot</p>
 <p>This conservative approach prevents Batcontrol from over-planning battery discharge based on overly optimistic solar forecasts.</p>
 <h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
 <p>When <code>production_offset_percent</code> differs from <code>1.0</code>, Batcontrol logs the adjustment:</p>
-<div class="highlight"><pre><span></span><code>Production forecast adjusted by 80% (factor: 0.8)
+<div class="highlight"><pre><span></span><code>Production offset active: 80.0% (multiplier: 0.800)
 </code></pre></div>
 <p>This helps you verify that your offset setting is being applied correctly.</p>
+<h1 id="market-price-refresh-time">Market Price Refresh Time<a class="headerlink" href="#market-price-refresh-time" title="Permanent link">&para;</a></h1>
+<ul>
+<li>Config option: <code>market_price_refresh_time</code></li>
+<li>Default: <code>"12:30"</code></li>
+</ul>
+<h2 id="market_price_refresh_time">market_price_refresh_time<a class="headerlink" href="#market_price_refresh_time" title="Permanent link">&para;</a></h2>
+<p>Once a day batcontrol forces a refresh of the dynamic tariff prices, regardless of what the price cache holds, to pick up newly published next-day prices (for example EPEX spot prices, published around 12:00 UTC).</p>
+<div class="highlight"><pre><span></span><code>battery_control_expert:
+  market_price_refresh_time: "12:30"
+</code></pre></div>
+<ul>
+<li>The value is a time of day as <code>"HH:MM"</code> in <strong>UTC</strong>, not in your local time zone.</li>
+<li>The value is validated at startup. An invalid value (for example <code>"25:00"</code> or <code>"12.30"</code>) aborts startup with a <code>ValueError</code>.</li>
+<li>When the refresh runs, batcontrol logs <code>Hard price refresh at HH:MM UTC - fetching fresh market prices</code>.</li>
+</ul>
 
 
 
