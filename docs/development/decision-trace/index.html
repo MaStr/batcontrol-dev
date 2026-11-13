@@ -1763,6 +1763,7 @@ explains why something did <strong>not</strong> happen.</p>
 </tr>
 </tbody>
 </table>
+<p>The <code>limit_set</code> record of <code>peak_shaving</code> carries <code>computed_limit_w</code> (merged time/price limit before the minimum charge rate) and <code>blocked_below_min_rate</code>. When the computed limit was between 1 W and 499 W, <code>final_limit_w</code> is 0 and <code>blocked_below_min_rate</code> is true.</p>
 <p><code>grid_recharge</code>/<code>no_charge</code> has five reasons for the same outcome, told
 apart purely from <code>high_price_slots</code>/<code>high_price_energy_demand</code>/
 <code>recharge_energy_before_minimum</code> (relative slot indices again, with

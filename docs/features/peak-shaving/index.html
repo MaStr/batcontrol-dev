@@ -2187,32 +2187,38 @@ If pv_surplus &gt; free_capacity:
 <thead>
 <tr>
 <th>Hours to target</th>
-<th>Allowed charge rate</th>
+<th>Computed limit</th>
+<th>Applied</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>8</td>
 <td>55 W</td>
+<td>0 W (PV charging blocked)</td>
 </tr>
 <tr>
 <td>4</td>
 <td>200 W</td>
+<td>0 W (PV charging blocked)</td>
 </tr>
 <tr>
 <td>2</td>
 <td>666 W</td>
+<td>666 W</td>
 </tr>
 <tr>
 <td>1</td>
+<td>2000 W</td>
 <td>2000 W (full rate)</td>
 </tr>
 </tbody>
 </table>
+<p>Computed values below the <a href="#charge-limit-and-minimum-charge-rate">minimum charge rate</a> of 500 W are applied as 0 W, so PV charging is blocked until the ramp reaches 500 W. The PV surplus is exported to the grid in the meantime.</p>
 <p>If the expected PV surplus does not exceed the free capacity, no limit is applied -- the battery can absorb everything anyway.</p>
 <h3 id="price_active-price-rule"><code>price_active</code> -- Price Rule<a class="headerlink" href="#price_active-price-rule" title="Permanent link">&para;</a></h3>
 <p>Reserves free battery capacity for upcoming <strong>cheap-price</strong> slots where PV is still producing. A slot is "cheap" when its price is at or below <code>price_limit</code>. Requires a <code>price_limit</code> value (use <code>-1</code> to disable without changing the switch).</p>
-<p>Only slots within the <strong>production window</strong> are considered. The production window ends at the first forecast slot where PV production is zero. This prevents reserving capacity for a cheap slot at e.g. 03:00 that would never produce any solar energy.</p>
+<p>Only slots within the <strong>production window</strong> are considered. The production window ends at the first forecast slot (after the current one) whose average PV power is below 50 W. Providers that return tiny non-zero values at night therefore do not extend the window into the next day. The current slot is not compared against the threshold, because its forecast is scaled by the remaining time of the slot and becomes tiny near the slot end. This prevents reserving capacity for a cheap slot at e.g. 03:00 that would never produce any solar energy.</p>
 <p><strong>Before the cheap window:</strong>
 1. Sum the expected PV surplus during cheap slots to get the target reserve.
 2. Calculate how much additional charging is allowed: <code>additional_allowed = free_capacity - target_reserve</code>.
@@ -2222,7 +2228,7 @@ If pv_surplus &gt; free_capacity:
 - If total PV surplus during cheap slots exceeds free capacity, spread <code>free_capacity</code> evenly over cheap slots so the battery fills gradually.
 - If surplus fits in free capacity, no limit is applied.</p>
 <h3 id="combining-rules">Combining Rules<a class="headerlink" href="#combining-rules" title="Permanent link">&para;</a></h3>
-<p>When multiple rules are active, the <strong>strictest (lowest non-negative) limit wins</strong>. For example, if the time rule suggests 500 W and the price rule suggests 300 W, the applied limit is 300 W. This conservative approach prioritizes the rules in combination rather than overriding each other.</p>
+<p>When multiple rules are active, the <strong>strictest (lowest non-negative) limit wins</strong>. For example, if the time rule suggests 1200 W and the price rule suggests 800 W, the applied limit is 800 W. A combined result below the 500 W minimum charge rate is applied as 0 W (see <a href="#charge-limit-and-minimum-charge-rate">Charge Limit and Minimum Charge Rate</a>). This conservative approach prioritizes the rules in combination rather than overriding each other.</p>
 <p><strong>Migration:</strong> the old <code>mode</code> parameter was removed in 0.10.0. Replace it with the switches:
 - <code>mode: time</code> → <code>time_active: true</code>, <code>price_active: false</code>
 - <code>mode: price</code> → <code>time_active: false</code>, <code>price_active: true</code>
@@ -2286,9 +2292,14 @@ If pv_surplus &gt; free_capacity:
 <p>For a detailed evaluation of the algorithm including simulation results and sensitivity analysis, see <a href="../../development/solar-limit-evaluation/">Solar Limit Evaluation</a>.</p>
 <h2 id="charge-limit-and-minimum-charge-rate">Charge Limit and Minimum Charge Rate<a class="headerlink" href="#charge-limit-and-minimum-charge-rate" title="Permanent link">&para;</a></h2>
 <p>The calculated charge limit is applied via <strong>Mode 8</strong> (<code>LIMIT_BATTERY_CHARGE_RATE</code>). In this mode the inverter caps PV-to-battery charging at the given wattage while still allowing the battery to discharge normally.</p>
-<p>A minimum charge rate of <strong>500 W</strong> is enforced: any computed limit between 1 W and 499 W is raised to 500 W to avoid inefficient low-power charging. A limit of exactly <strong>0 W</strong> (block charging completely) is kept as-is and is not raised.</p>
+<p>A minimum charge rate of <strong>500 W</strong> applies to avoid inefficient low-power charging. How a computed limit below 500 W is handled depends on the rule:</p>
+<ul>
+<li><strong>Time and price rule:</strong> a computed limit between 1 W and 499 W is applied as <strong>0 W</strong> (PV charging blocked). Raising it to 500 W would defeat the ramp: with 2000 Wh free and 8 h to the target the ramp asks for 55 W, but 500 W would fill the battery after 4 h. The limit is recomputed every cycle and releases as soon as the computed value reaches 500 W. While it is blocked, PV surplus is exported to the grid. The <a href="../../development/decision-trace/">Decision sensor</a> shows this through <code>computed_limit_w</code> and <code>blocked_below_min_rate</code> in the <code>peak_shaving</code> record.</li>
+<li><strong>Solar cap rule:</strong> the result is still <strong>raised to 500 W</strong>, because a limit of 0 W could curtail clip energy (see below).</li>
+</ul>
+<p>A limit of exactly <strong>0 W</strong> (block charging completely) is always kept as-is.</p>
 <h3 id="interaction-with-the-minimum-charge-rate">Interaction with the minimum charge rate<a class="headerlink" href="#interaction-with-the-minimum-charge-rate" title="Permanent link">&para;</a></h3>
-<p>The minimum charge rate is applied <em>after</em> the rules have been merged, so it can override a deliberately low limit. This matters most for the solar cap rule when free capacity is scarce and the cap has been set equal to the floor.</p>
+<p>For the solar cap rule the minimum charge rate is applied <em>after</em> the rules have been merged, so it can override a deliberately low limit. This matters most for the solar cap rule when free capacity is scarce and the cap has been set equal to the floor.</p>
 <p>At the edges of the clip window the excess over the feed-in limit is only a few dozen watts. The rule therefore asks for a correspondingly small charge rate, but the 500 W minimum raises it -- and the battery consumes capacity that was reserved for the peak.</p>
 <p>The example day on the <a href="../peak-shaving-scenarios/">scenarios page</a> shows the effect for the "Solar cap only" configuration:</p>
 <table>

@@ -33,6 +33,8 @@ A step is *decisive* when it determines the control settings at the time it runs
 | `override`      | `applied`                                                                             | `PV_CHARGE_RATE_CLAMPED`, `GRID_CHARGE_RATE_CLAMPED`                                                                                                                                                                                     | no (note, see below)                                |
 | `mode`          | `allow_discharging`, `limit_battery_charge_rate`, `avoid_discharging`, `force_charge` | reason of the decisive step                                                                                                                                                                                                              | -                                                   |
 
+The `limit_set` record of `peak_shaving` carries `computed_limit_w` (merged time/price limit before the minimum charge rate) and `blocked_below_min_rate`. When the computed limit was between 1 W and 499 W, `final_limit_w` is 0 and `blocked_below_min_rate` is true.
+
 `grid_recharge`/`no_charge` has five reasons for the same outcome, told apart purely from `high_price_slots`/`high_price_energy_demand`/ `recharge_energy_before_minimum` (relative slot indices again, with `interval_minutes`) -- no separate flag is needed:
 
 - `GRID_CHARGE_LIMIT_REACHED`: SoC is already above the grid-charging limit, so the calculation never ran and these stay at their defaults.

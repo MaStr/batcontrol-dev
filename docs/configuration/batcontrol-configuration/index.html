@@ -1706,10 +1706,17 @@ Amount of logsize bevore a logswitch is applied. The logs switches from log.1 to
 Details about the Price configuration can be found on <a href="../../features/price-difference-calculation/">price difference calculation</a> page.
 <code>always_allow_discharge_limit</code> &amp; <code>max_charging_from_grid_limit</code> is explained <a href="../../getting-started/how-batcontrol-works/">here</a>.</p>
 <p><img alt="Picture of different parameters on battery soc" src="../../assets/battery_limits_parameter.png" /></p>
-<p><code>min_grid_charge_soc</code> is optional. When set as a ratio, for example <code>0.55</code>, batcontrol grid-charges toward this target when charging is economical. Leave it unset to keep the default behavior.</p>
+<p><code>min_grid_charge_soc</code> is optional. When set as a ratio, for example <code>0.55</code>, it is a minimum SoC that batcontrol secures from the grid <strong>independent of the forecast demand</strong>. Leave it unset to keep the default behavior.</p>
+<p>Without it, batcontrol only recharges the energy the upcoming expensive slots are expected to need, minus what is already stored. With it, every economical grid-charging opportunity charges the battery at least up to this SoC:</p>
+<ul>
+<li>The trigger is the price signal only: a later slot with consumption that is more expensive than the current one by at least <code>min_price_difference</code>, while discharging is currently held back.</li>
+<li>The amount is not tied to the demand. Even when the stored energy already covers the expensive slots, batcontrol still charges up to <code>min_grid_charge_soc</code>. Example: 25 % SoC, the expensive slots need less than what is stored, <code>min_grid_charge_soc: 0.55</code> - batcontrol charges to 55 %.</li>
+<li>If the demand calls for more than the target, the higher amount is charged, as usual.</li>
+<li>Without a price signal nothing is charged: the value is not a floor that is kept at any price.</li>
+</ul>
 <p><code>grid_charge_target_strategy</code> controls how <code>min_grid_charge_soc</code> is applied:</p>
 <ul>
-<li><code>fixed</code> (default): grid-charge toward <code>min_grid_charge_soc</code> when charging is economical.</li>
+<li><code>fixed</code> (default): charge at least up to <code>min_grid_charge_soc</code>, as described above.</li>
 <li><code>forecast</code>: use existing high-price-slot demand as an additional reserve. The target is roughly <code>min_grid_charge_soc</code> energy plus the calculated high-price required energy, capped by <code>max_charging_from_grid_limit</code>.</li>
 </ul>
 <p>To also preserve this target as reserved energy during cheap/pre-expensive windows, enable the expert option <code>preserve_min_grid_charge_soc</code>. Without that expert option, the strategy affects grid recharge only and does not add extra discharge blocking.</p>
