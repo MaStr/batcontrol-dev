@@ -1698,7 +1698,7 @@ explains why something did <strong>not</strong> happen.</p>
 <tr>
 <td><code>grid_recharge</code></td>
 <td><code>charge</code></td>
-<td><code>GRID_RECHARGE_REQUIRED</code></td>
+<td><code>GRID_RECHARGE_REQUIRED</code>, <code>GRID_RECHARGE_CHEAPER_SLOTS_INSUFFICIENT</code></td>
 <td>yes</td>
 </tr>
 <tr>
@@ -1764,6 +1764,16 @@ explains why something did <strong>not</strong> happen.</p>
 </tbody>
 </table>
 <p>The <code>limit_set</code> record of <code>peak_shaving</code> carries <code>computed_limit_w</code> (merged time/price limit before the minimum charge rate) and <code>blocked_below_min_rate</code>. When the computed limit was between 1 W and 499 W, <code>final_limit_w</code> is 0 and <code>blocked_below_min_rate</code> is true.</p>
+<p><code>grid_recharge</code>/<code>charge</code> has two reasons, told apart by <code>deferrable_energy</code>:
+- <code>GRID_RECHARGE_REQUIRED</code>: the high-price slots follow before any slot
+  that is not more expensive than the current one, so this is the moment to
+  charge for them (<code>deferrable_energy</code> is 0).
+- <code>GRID_RECHARGE_CHEAPER_SLOTS_INSUFFICIENT</code>: cheaper or equally cheap slots
+  follow first, but at <code>max_grid_charge_rate</code> they can only charge
+  <code>deferrable_energy</code> of the <code>high_price_energy_demand</code> behind them; the rest
+  is charged now. <code>high_price_slots</code> then also lists the slots behind
+  <code>recharge_window_end</code> that cause the recharge. Only possible when the
+  inverter reports a <code>max_grid_charge_rate</code>.</p>
 <p><code>grid_recharge</code>/<code>no_charge</code> has five reasons for the same outcome, told
 apart purely from <code>high_price_slots</code>/<code>high_price_energy_demand</code>/
 <code>recharge_energy_before_minimum</code> (relative slot indices again, with
