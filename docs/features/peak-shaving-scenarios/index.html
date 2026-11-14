@@ -1888,10 +1888,11 @@ full exactly around the target hour instead of at lunchtime.</p>
 <p>Until 11:00 the rule returns <strong>0</strong> -- a hard block. The PV surplus expected
 during the cheap window exceeds the free capacity, so no charging at all is
 allowed beforehand and the whole battery is kept for the cheap hours. At 11:00
-the cheap window opens and the reserved capacity is spread evenly over the
-remaining cheap slots.</p>
+the cheap window opens and the free capacity is spread over the cheap slots
+that have a PV surplus.</p>
 <p>Note the difference to the time rule: the price rule distributes <strong>flat</strong>
-(<code>free_capacity / number of cheap slots</code>), not as a rising ramp. It is
+(<code>free_capacity / hours covered by the cheap slots with PV surplus</code>, the
+current slot counting only with its remaining time), not as a rising ramp. It is
 recomputed every cycle, so the value still drifts upward as cheap slots are
 used up and free capacity shrinks.</p>
 <div class="ps-chart" data-scenario="price"></div>

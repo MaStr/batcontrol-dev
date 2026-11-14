@@ -2225,7 +2225,7 @@ If pv_surplus &gt; free_capacity:
 3. If <code>additional_allowed &lt;= 0</code>: block PV charging entirely (rate = 0).
 4. Otherwise: spread <code>additional_allowed</code> evenly over the slots before the cheap window.</p>
 <p><strong>Inside the cheap window:</strong>
-- If total PV surplus during cheap slots exceeds free capacity, spread <code>free_capacity</code> evenly over cheap slots so the battery fills gradually.
+- If total PV surplus during cheap slots exceeds free capacity, spread <code>free_capacity</code> over the cheap slots that have a PV surplus, in proportion to time, so the battery fills gradually. The current slot counts only with the time that is left in it, all following slots count in full; the limit is <code>free_capacity</code> divided by the hours covered by these slots. Cheap slots without surplus are not counted.
 - If surplus fits in free capacity, no limit is applied.</p>
 <h3 id="combining-rules">Combining Rules<a class="headerlink" href="#combining-rules" title="Permanent link">&para;</a></h3>
 <p>When multiple rules are active, the <strong>strictest (lowest non-negative) limit wins</strong>. For example, if the time rule suggests 1200 W and the price rule suggests 800 W, the applied limit is 800 W. A combined result below the 500 W minimum charge rate is applied as 0 W (see <a href="#charge-limit-and-minimum-charge-rate">Charge Limit and Minimum Charge Rate</a>). This conservative approach prioritizes the rules in combination rather than overriding each other.</p>

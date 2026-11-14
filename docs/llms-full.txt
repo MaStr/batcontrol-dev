@@ -2150,7 +2150,7 @@ Only slots within the **production window** are considered. The production windo
 
 **Inside the cheap window:**
 
-- If total PV surplus during cheap slots exceeds free capacity, spread `free_capacity` evenly over cheap slots so the battery fills gradually.
+- If total PV surplus during cheap slots exceeds free capacity, spread `free_capacity` over the cheap slots that have a PV surplus, in proportion to time, so the battery fills gradually. The current slot counts only with the time that is left in it, all following slots count in full; the limit is `free_capacity` divided by the hours covered by these slots. Cheap slots without surplus are not counted.
 - If surplus fits in free capacity, no limit is applied.
 
 ### Combining Rules
@@ -2388,9 +2388,9 @@ The counter-linear ramp spreads the remaining free capacity over the slots until
 
 `price_active: true`, `price_limit: 0.05`
 
-Until 11:00 the rule returns **0** -- a hard block. The PV surplus expected during the cheap window exceeds the free capacity, so no charging at all is allowed beforehand and the whole battery is kept for the cheap hours. At 11:00 the cheap window opens and the reserved capacity is spread evenly over the remaining cheap slots.
+Until 11:00 the rule returns **0** -- a hard block. The PV surplus expected during the cheap window exceeds the free capacity, so no charging at all is allowed beforehand and the whole battery is kept for the cheap hours. At 11:00 the cheap window opens and the free capacity is spread over the cheap slots that have a PV surplus.
 
-Note the difference to the time rule: the price rule distributes **flat** (`free_capacity / number of cheap slots`), not as a rising ramp. It is recomputed every cycle, so the value still drifts upward as cheap slots are used up and free capacity shrinks.
+Note the difference to the time rule: the price rule distributes **flat** (`free_capacity / hours covered by the cheap slots with PV surplus`, the current slot counting only with its remaining time), not as a rising ramp. It is recomputed every cycle, so the value still drifts upward as cheap slots are used up and free capacity shrinks.
 
 ### Solar cap only
 
@@ -3980,6 +3980,8 @@ These are used by [peak shaving](https://mastr.github.io/batcontrol/features/pea
 1. **Battery Unblocking**: Battery discharge blocking is removed
 1. **Limit Restoration**: Original discharge limit is restored
 1. **Logging**: Batcontrol logs: `"evcc is not charging, remove block"`
+
+The battery is not released at that moment. The end of the block does not tell batcontrol which mode would be right, so discharging stays avoided until the next evaluation (at most 3 minutes later) decides. During that time the Decision sensor shows the reason `EXTERNAL_DISCHARGE_UNBLOCK`. Above `always_allow_discharge_limit` nothing is held back.
 
 ### When evcc Goes Offline
 
