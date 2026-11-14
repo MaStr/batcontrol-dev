@@ -1784,7 +1784,13 @@ slots have filled the battery, so <code>higher_price_slots_behind</code>,
   <code>deferrable_energy</code> of the <code>high_price_energy_demand</code> behind them; the rest
   is charged now. <code>high_price_slots</code> then also lists the slots behind
   <code>recharge_window_end</code> that cause the recharge. Only possible when the
-  inverter reports a <code>max_grid_charge_rate</code>.</p>
+  inverter reports a <code>max_grid_charge_rate</code>.
+  If the battery cannot take the whole rest on top of what the cheaper slots
+  charge, <code>battery_room_behind_cheaper_slots</code> (Wh) is the part that fits and
+  the explanation names it; otherwise it is 0. Example: the cheaper slots
+  charge 5682 Wh of 8500 Wh, the battery takes 8090 Wh from the grid, so
+  2408 Wh fit and are charged now (plus the minimum charge amount), not the
+  2818 Wh that are missing.</p>
 <p><code>grid_recharge</code>/<code>no_charge</code> has five reasons for the same outcome, told
 apart purely from <code>high_price_slots</code>/<code>high_price_energy_demand</code>/
 <code>recharge_energy_before_minimum</code> (relative slot indices again, with
