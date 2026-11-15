@@ -1766,7 +1766,7 @@ Details about the Price configuration can be found on <a href="../../features/pr
 <td><code>spread_grid_charge_over_charge_window</code></td>
 <td>boolean</td>
 <td>true</td>
-<td>With soften enabled: calculate the grid charge rate over all following slots that are not more expensive than the current slot, instead of the current slot only</td>
+<td>With soften enabled: calculate the grid charge rate over all following slots that are not more expensive than the current slot plus the soften margin (<code>min_price_difference / soften_price_difference_on_charging_factor</code>), instead of the current slot only</td>
 </tr>
 <tr>
 <td><code>round_price_digits</code></td>
