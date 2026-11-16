@@ -421,7 +421,7 @@ Based on the forecasts and current battery state, batcontrol puts your inverter 
 The system validates configuration to prevent problematic behavior:
 
 - `always_allow_discharge_limit` must be > `max_charging_from_grid_limit`
-- If violated, `max_charging_from_grid_limit` is automatically lowered
+- If violated, grid charging stops one percentage point below `always_allow_discharge_limit` for as long as this is the case. The configured `max_charging_from_grid_limit` is kept and applies again as soon as `always_allow_discharge_limit` is raised above it - for example after it was lowered for a while via MQTT.
 
 ## External Integrations
 
@@ -3072,7 +3072,7 @@ Forecast endpoints accept `limit` and `offset` and report `total_count`, `has_mo
 
 ### Runtime overrides in `/config`
 
-The fields of `/config` always show the value **in effect**. Several of them can change at runtime - via MQTT, through evcc, by the grid charge lock (which sets `max_charging_from_grid_limit` to 0) or by the control loop itself (it lowers `max_charging_from_grid_limit` below `always_allow_discharge_limit`). `overrides` lists every parameter whose effective value differs from the configuration file:
+The fields of `/config` always show the value **in effect**. Several of them can change at runtime - via MQTT, through evcc, by the grid charge lock (which sets `max_charging_from_grid_limit` to 0) or by the control loop itself (it keeps `max_charging_from_grid_limit` below `always_allow_discharge_limit` while that is lower than the requested value). `overrides` lists every parameter whose effective value differs from the configuration file:
 
 ```
 "overrides": {
@@ -3372,8 +3372,8 @@ See [Forecast Metrics](https://mastr.github.io/batcontrol/integrations/forecast-
 - `house/batcontrol/always_allow_discharge_limit` - Always discharge limit (0.0-1.0)
 - `house/batcontrol/always_allow_discharge_limit_percent` - Always discharge limit in %
 - `house/batcontrol/always_allow_discharge_limit_capacity` - Always discharge limit in Wh
-- `house/batcontrol/max_charging_from_grid_limit` - Max charging from grid limit (0.0-1.0)
-- `house/batcontrol/max_charging_from_grid_limit_percent` - Max charging from grid limit in %
+- `house/batcontrol/max_charging_from_grid_limit` - Max charging from grid limit in effect (0.0-1.0)
+- `house/batcontrol/max_charging_from_grid_limit_percent` - Max charging from grid limit in effect in %
 - `house/batcontrol/min_grid_charge_soc` - Optional configured minimum grid-charge target (0.0-1.0)
 - `house/batcontrol/min_grid_charge_soc_percent` - Optional configured minimum grid-charge target in %
 - `house/batcontrol/effective_min_grid_charge_soc` - Runtime effective grid-charge target after strategy calculation (0.0-1.0)
@@ -3432,7 +3432,7 @@ Batcontrol listens to the following `/set` topics for remote control:
 ### Configuration
 
 - `house/batcontrol/always_allow_discharge_limit/set` - Set always discharge limit (0.0-1.0)
-- `house/batcontrol/max_charging_from_grid_limit/set` - Set max charging from grid limit (0.0-1.0)
+- `house/batcontrol/max_charging_from_grid_limit/set` - Set max charging from grid limit (0.0-1.0). The published value is the limit in effect: while `always_allow_discharge_limit` is lower than the value set here, it stays one percentage point below that limit and returns to the set value once `always_allow_discharge_limit` is raised again.
 - `house/batcontrol/min_price_difference/set` - Set minimum price difference in EUR
 - `house/batcontrol/min_price_difference_rel/set` - Set relative minimum price difference (e.g. `0.10` for 10%)
 - `house/batcontrol/production_offset/set` - Set production offset multiplier (0.0-2.0)
@@ -4547,6 +4547,10 @@ Two approaches to handle the timing/indexing issue:
 1. **Simpler core.py** - less error-prone
 1. **Baseclass handles complexity** - providers stay simple
 1. **MQTT can round to hour** - if needed for display purposes
+
+One timestamp per control cycle
+
+The sketches in this document read the clock inside each function. The code does not: `core._run_once` takes one timestamp per cycle and passes it as `now` to `get_prices()` and both `get_forecast()` methods, uses it to scale slot 0 and hands it to the logic as `calc_timestamp`. The control loop starts on full minutes, so separate clock reads could land on different sides of a slot boundary and make slot 0 mean different intervals for prices, forecasts and the elapsed-time scaling. A provider reads the clock only when it is called without `now`; new providers must derive both the start of the hour and the current interval from the `now` they are given.
 
 **Implementation** (in baseclass):
 

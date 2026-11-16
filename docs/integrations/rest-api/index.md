@@ -91,7 +91,7 @@ Forecast endpoints accept `limit` and `offset` and report `total_count`, `has_mo
 
 ### Runtime overrides in `/config`
 
-The fields of `/config` always show the value **in effect**. Several of them can change at runtime - via MQTT, through evcc, by the grid charge lock (which sets `max_charging_from_grid_limit` to 0) or by the control loop itself (it lowers `max_charging_from_grid_limit` below `always_allow_discharge_limit`). `overrides` lists every parameter whose effective value differs from the configuration file:
+The fields of `/config` always show the value **in effect**. Several of them can change at runtime - via MQTT, through evcc, by the grid charge lock (which sets `max_charging_from_grid_limit` to 0) or by the control loop itself (it keeps `max_charging_from_grid_limit` below `always_allow_discharge_limit` while that is lower than the requested value). `overrides` lists every parameter whose effective value differs from the configuration file:
 
 ```
 "overrides": {

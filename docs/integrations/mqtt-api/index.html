@@ -2483,8 +2483,8 @@ are not affected.</p>
 <li><code>house/batcontrol/always_allow_discharge_limit</code> - Always discharge limit (0.0-1.0)</li>
 <li><code>house/batcontrol/always_allow_discharge_limit_percent</code> - Always discharge limit in %</li>
 <li><code>house/batcontrol/always_allow_discharge_limit_capacity</code> - Always discharge limit in Wh</li>
-<li><code>house/batcontrol/max_charging_from_grid_limit</code> - Max charging from grid limit (0.0-1.0)</li>
-<li><code>house/batcontrol/max_charging_from_grid_limit_percent</code> - Max charging from grid limit in %</li>
+<li><code>house/batcontrol/max_charging_from_grid_limit</code> - Max charging from grid limit in effect (0.0-1.0)</li>
+<li><code>house/batcontrol/max_charging_from_grid_limit_percent</code> - Max charging from grid limit in effect in %</li>
 <li><code>house/batcontrol/min_grid_charge_soc</code> - Optional configured minimum grid-charge target (0.0-1.0)</li>
 <li><code>house/batcontrol/min_grid_charge_soc_percent</code> - Optional configured minimum grid-charge target in %</li>
 <li><code>house/batcontrol/effective_min_grid_charge_soc</code> - Runtime effective grid-charge target after strategy calculation (0.0-1.0)</li>
@@ -2540,7 +2540,7 @@ see the Forecast Data Format section below.</p>
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>house/batcontrol/always_allow_discharge_limit/set</code> - Set always discharge limit (0.0-1.0)</li>
-<li><code>house/batcontrol/max_charging_from_grid_limit/set</code> - Set max charging from grid limit (0.0-1.0)</li>
+<li><code>house/batcontrol/max_charging_from_grid_limit/set</code> - Set max charging from grid limit (0.0-1.0). The published value is the limit in effect: while <code>always_allow_discharge_limit</code> is lower than the value set here, it stays one percentage point below that limit and returns to the set value once <code>always_allow_discharge_limit</code> is raised again.</li>
 <li><code>house/batcontrol/min_price_difference/set</code> - Set minimum price difference in EUR</li>
 <li><code>house/batcontrol/min_price_difference_rel/set</code> - Set relative minimum price difference (e.g. <code>0.10</code> for 10%)</li>
 <li><code>house/batcontrol/production_offset/set</code> - Set production offset multiplier (0.0-2.0)</li>

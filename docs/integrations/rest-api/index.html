@@ -1011,8 +1011,9 @@ how many slots the statistics cover.</p>
 <h3 id="runtime-overrides-in-config">Runtime overrides in <code>/config</code><a class="headerlink" href="#runtime-overrides-in-config" title="Permanent link">¶</a></h3>
 <p>The fields of <code>/config</code> always show the value <strong>in effect</strong>. Several of them can change at
 runtime - via MQTT, through evcc, by the grid charge lock (which sets
-<code>max_charging_from_grid_limit</code> to 0) or by the control loop itself (it lowers
-<code>max_charging_from_grid_limit</code> below <code>always_allow_discharge_limit</code>). <code>overrides</code> lists every
+<code>max_charging_from_grid_limit</code> to 0) or by the control loop itself (it keeps
+<code>max_charging_from_grid_limit</code> below <code>always_allow_discharge_limit</code> while that is lower than the
+requested value). <code>overrides</code> lists every
 parameter whose effective value differs from the configuration file:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">"overrides"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nt">"peak_shaving.enabled"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"configured"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"effective"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>

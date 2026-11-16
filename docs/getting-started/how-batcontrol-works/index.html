@@ -2268,7 +2268,7 @@
 <h3 id="safety-constraints">Safety Constraints<a class="headerlink" href="#safety-constraints" title="Permanent link">&para;</a></h3>
 <p>The system validates configuration to prevent problematic behavior:
 - <code>always_allow_discharge_limit</code> must be &gt; <code>max_charging_from_grid_limit</code>
-- If violated, <code>max_charging_from_grid_limit</code> is automatically lowered</p>
+- If violated, grid charging stops one percentage point below <code>always_allow_discharge_limit</code> for as long as this is the case. The configured <code>max_charging_from_grid_limit</code> is kept and applies again as soon as <code>always_allow_discharge_limit</code> is raised above it - for example after it was lowered for a while via MQTT.</p>
 <h2 id="external-integrations">External Integrations<a class="headerlink" href="#external-integrations" title="Permanent link">&para;</a></h2>
 <h3 id="evcc-integration">evcc Integration<a class="headerlink" href="#evcc-integration" title="Permanent link">&para;</a></h3>
 <ul>
