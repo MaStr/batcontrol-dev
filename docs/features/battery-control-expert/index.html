@@ -1644,6 +1644,29 @@ In optimal conditions, your system might consistently outperform forecasts. A sl
 <li>The value is validated at startup. An invalid value (for example <code>"25:00"</code> or <code>"12.30"</code>) aborts startup with a <code>ValueError</code>.</li>
 <li>When the refresh runs, batcontrol logs <code>Hard price refresh at HH:MM UTC - fetching fresh market prices</code>.</li>
 </ul>
+<h1 id="limit-the-forecast-horizon">Limit the forecast horizon<a class="headerlink" href="#limit-the-forecast-horizon" title="Permanent link">&para;</a></h1>
+<ul>
+<li>Config option: <code>max_forecast_hours</code></li>
+<li>Default: <code>0</code> (no limit)</li>
+</ul>
+<h2 id="max_forecast_hours-since-0102">max_forecast_hours (since 0.10.2)<a class="headerlink" href="#max_forecast_hours-since-0102" title="Permanent link">&para;</a></h2>
+<p>Batcontrol plans over the time span that is covered by both the price and the solar forecast. Some providers deliver far more than the day-ahead prices: energyforecast.de predicts prices for up to 96 hours. Prices beyond the day-ahead auction are a prediction, not a fixed price, and the solar forecast gets weaker with every day. Batcontrol nevertheless treats every slot of the horizon alike.</p>
+<p>With a long horizon batcontrol</p>
+<ul>
+<li>reserves energy for expensive hours that are several days away, and</li>
+<li>charges from the grid now for demand that is several days away, if no cheaper slot comes before it.</li>
+</ul>
+<p><code>max_forecast_hours</code> cuts the horizon. Slots behind it are ignored as if the forecasts ended there:</p>
+<div class="highlight"><pre><span></span><code>battery_control_expert:
+  max_forecast_hours: 48
+</code></pre></div>
+<ul>
+<li>The value is a number of hours counted from the start of the current slot, at any <code>time_resolution_minutes</code>. <code>48</code> means 48 slots at 60 minutes and 192 slots at 15 minutes.</li>
+<li><code>0</code> (default) does not limit the horizon.</li>
+<li>A limit longer than the available forecasts has no effect.</li>
+<li>The cut applies to everything batcontrol calculates and publishes: the forecasts on MQTT, in the REST API and in the dashboard end at the same slot.</li>
+<li>A very short horizon hides the next expensive hours from batcontrol. Values below 24 are rarely useful.</li>
+</ul>
 <h1 id="valid-values">Valid values<a class="headerlink" href="#valid-values" title="Permanent link">&para;</a></h1>
 <p>The expert values are checked when batcontrol starts. An invalid value stops the start with a
 message that names the key and the value, for example:</p>
@@ -1688,6 +1711,10 @@ message that names the key and the value, for example:</p>
 <tr>
 <td><code>market_price_refresh_time</code></td>
 <td>time of day as <code>"HH:MM"</code> (UTC)</td>
+</tr>
+<tr>
+<td><code>max_forecast_hours</code></td>
+<td>number, 0 or greater</td>
 </tr>
 </tbody>
 </table>

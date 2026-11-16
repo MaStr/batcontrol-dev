@@ -1732,6 +1732,7 @@ Details about the Price configuration can be found on <a href="../../features/pr
   production_offset_percent: 1.0
   preserve_min_grid_charge_soc: false
   market_price_refresh_time: "12:30"
+  max_forecast_hours: 0
 </code></pre></div>
 <p>These expert parameters allow fine-tuning of Batcontrol's behavior. See <a href="../../features/battery-control-expert/">Battery Control Expert</a> for detailed explanations of each parameter:</p>
 <table>
@@ -1791,6 +1792,12 @@ Details about the Price configuration can be found on <a href="../../features/pr
 <td>string</td>
 <td>"12:30"</td>
 <td>UTC time ("HH:MM") of the daily forced price refresh that picks up newly published next-day prices. An invalid value aborts startup</td>
+</tr>
+<tr>
+<td><code>max_forecast_hours</code></td>
+<td>float</td>
+<td>0</td>
+<td>Use at most this many hours of the forecasts, for example <code>48</code>. <code>0</code> does not limit the horizon</td>
 </tr>
 </tbody>
 </table>

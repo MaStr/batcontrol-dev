@@ -600,6 +600,7 @@ battery_control_expert:
   production_offset_percent: 1.0
   preserve_min_grid_charge_soc: false
   market_price_refresh_time: "12:30"
+  max_forecast_hours: 0
 ```
 
 These expert parameters allow fine-tuning of Batcontrol's behavior. See [Battery Control Expert](https://mastr.github.io/batcontrol/features/battery-control-expert/index.md) for detailed explanations of each parameter:
@@ -614,6 +615,7 @@ These expert parameters allow fine-tuning of Batcontrol's behavior. See [Battery
 | `production_offset_percent`                  | float   | 1.0     | Multiplier to adjust solar production forecast (1.0 = no change, 0.8 = 80%, etc.)                                                                                                                                                                             |
 | `preserve_min_grid_charge_soc`               | boolean | false   | Also preserve `min_grid_charge_soc` as reserved battery energy during cheap/pre-expensive windows                                                                                                                                                             |
 | `market_price_refresh_time`                  | string  | "12:30" | UTC time ("HH:MM") of the daily forced price refresh that picks up newly published next-day prices. An invalid value aborts startup                                                                                                                           |
+| `max_forecast_hours`                         | float   | 0       | Use at most this many hours of the forecasts, for example `48`. `0` does not limit the horizon                                                                                                                                                                |
 
 ## General options
 
@@ -2729,6 +2731,33 @@ battery_control_expert:
 - The value is validated at startup. An invalid value (for example `"25:00"` or `"12.30"`) aborts startup with a `ValueError`.
 - When the refresh runs, batcontrol logs `Hard price refresh at HH:MM UTC - fetching fresh market prices`.
 
+# Limit the forecast horizon
+
+- Config option: `max_forecast_hours`
+- Default: `0` (no limit)
+
+## max_forecast_hours (since 0.10.2)
+
+Batcontrol plans over the time span that is covered by both the price and the solar forecast. Some providers deliver far more than the day-ahead prices: energyforecast.de predicts prices for up to 96 hours. Prices beyond the day-ahead auction are a prediction, not a fixed price, and the solar forecast gets weaker with every day. Batcontrol nevertheless treats every slot of the horizon alike.
+
+With a long horizon batcontrol
+
+- reserves energy for expensive hours that are several days away, and
+- charges from the grid now for demand that is several days away, if no cheaper slot comes before it.
+
+`max_forecast_hours` cuts the horizon. Slots behind it are ignored as if the forecasts ended there:
+
+```
+battery_control_expert:
+  max_forecast_hours: 48
+```
+
+- The value is a number of hours counted from the start of the current slot, at any `time_resolution_minutes`. `48` means 48 slots at 60 minutes and 192 slots at 15 minutes.
+- `0` (default) does not limit the horizon.
+- A limit longer than the available forecasts has no effect.
+- The cut applies to everything batcontrol calculates and publishes: the forecasts on MQTT, in the REST API and in the dashboard end at the same slot.
+- A very short horizon hides the next expensive hours from batcontrol. Values below 24 are rarely useful.
+
 # Valid values
 
 The expert values are checked when batcontrol starts. An invalid value stops the start with a message that names the key and the value, for example:
@@ -2747,6 +2776,7 @@ ValueError: battery_control_expert.soften_price_difference_on_charging_factor mu
 | `production_offset_percent`                  | number, 0 or greater                            |
 | `preserve_min_grid_charge_soc`               | `true` / `false`                                |
 | `market_price_refresh_time`                  | time of day as `"HH:MM"` (UTC)                  |
+| `max_forecast_hours`                         | number, 0 or greater                            |
 
 Booleans may also be written as `yes` / `no`, `on` / `off` or `1` / `0`, and numbers as text (`"5"`), which is what a form field of the Home Assistant add-on delivers. The text `"false"` is read as `false`.
 
@@ -3082,6 +3112,10 @@ Forecast endpoints accept `limit` and `offset` and report `total_count`, `has_mo
 ### Price status
 
 `/price/status` covers the **next 24 hours from the current slot**, independent of how far the optimizer looks ahead. Every value is per slot at the configured resolution (`interval_minutes`): `min` is the cheapest slot, so there is no separate "cheapest window". `rank` is the position of the current price in the window, 1 being the cheapest; equal prices share a rank. When the tariff provider's prices end before the 24 hours do, `complete` is `false` and `slot_count` says how many slots the statistics cover.
+
+### Forecast horizon
+
+The forecast endpoints end where batcontrol's planning ends: at the last slot covered by both the price and the solar forecast, or earlier when [`max_forecast_hours`](https://mastr.github.io/batcontrol/features/battery-control-expert/#max_forecast_hours-since-0102) is set. `/config` reports that limit as `battery_control.max_forecast_hours` in hours; `0` means the horizon is not limited.
 
 ### Runtime overrides in `/config`
 

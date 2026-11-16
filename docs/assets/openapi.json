@@ -186,6 +186,18 @@
             "description": "SoC ratio (0-1) up to which grid charging is allowed.",
             "title": "Max Charging From Grid Limit"
           },
+          "max_forecast_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Upper bound of the forecast horizon in hours, counted from the start of the current slot. 0 = not limited.",
+            "title": "Max Forecast Hours"
+          },
           "min_grid_charge_soc": {
             "anyOf": [
               {
