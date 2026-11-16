@@ -13,7 +13,7 @@
                 "type": "null"
               }
             ],
-            "description": "always_allow_discharge_limit as energy in Wh: max_energy_capacity * limit.",
+            "description": "always_allow_discharge_limit as stored energy in Wh: the limit is a real SoC, so this is the capacity at 100 % SoC * limit, independent of max_soc. Only while max_soc is unknown, max_energy_capacity * limit.",
             "title": "Always Allow Discharge Limit Capacity"
           },
           "always_allow_discharge_limit_percent": {

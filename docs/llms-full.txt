@@ -411,6 +411,8 @@ Based on the forecasts and current battery state, batcontrol puts your inverter 
 - Maximum SOC for grid charging
 - Must be lower than discharge limit to prevent oscillation
 
+All SOC values of the configuration (`always_allow_discharge_limit`, `max_charging_from_grid_limit`, `min_grid_charge_soc`) are the **real state of charge** of the battery: `0.90` means 90% SOC as the inverter reports it. They do not depend on the inverter's maximum SOC (`max_soc`). If `max_soc` is lower than a configured value, the battery simply cannot reach it; grid charging then stops at `max_soc`. One exception: while the inverter does not report a `max_soc`, batcontrol does not know the capacity at 100% SOC and applies the values to the maximum capacity the inverter reports.
+
 **`min_recharge_amount`** (default: 100Wh) (since 0.5.3)
 
 - Minimum amount of energy that is needed to be recharged before starting to recharge.
@@ -3382,7 +3384,7 @@ See [Forecast Metrics](https://mastr.github.io/batcontrol/integrations/forecast-
 
 - `house/batcontrol/always_allow_discharge_limit` - Always discharge limit (0.0-1.0)
 - `house/batcontrol/always_allow_discharge_limit_percent` - Always discharge limit in %
-- `house/batcontrol/always_allow_discharge_limit_capacity` - Always discharge limit in Wh
+- `house/batcontrol/always_allow_discharge_limit_capacity` - Always discharge limit as stored energy in Wh: the limit times the capacity at 100% SOC, independent of the inverter's `max_soc`. Only while the inverter does not report a `max_soc`, the capacity it reports as maximum is used instead.
 - `house/batcontrol/max_charging_from_grid_limit` - Max charging from grid limit in effect (0.0-1.0)
 - `house/batcontrol/max_charging_from_grid_limit_percent` - Max charging from grid limit in effect in %
 - `house/batcontrol/min_grid_charge_soc` - Optional configured minimum grid-charge target (0.0-1.0)

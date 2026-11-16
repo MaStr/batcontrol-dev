@@ -2482,7 +2482,7 @@ are not affected.</p>
 <ul>
 <li><code>house/batcontrol/always_allow_discharge_limit</code> - Always discharge limit (0.0-1.0)</li>
 <li><code>house/batcontrol/always_allow_discharge_limit_percent</code> - Always discharge limit in %</li>
-<li><code>house/batcontrol/always_allow_discharge_limit_capacity</code> - Always discharge limit in Wh</li>
+<li><code>house/batcontrol/always_allow_discharge_limit_capacity</code> - Always discharge limit as stored energy in Wh: the limit times the capacity at 100% SOC, independent of the inverter's <code>max_soc</code>. Only while the inverter does not report a <code>max_soc</code>, the capacity it reports as maximum is used instead.</li>
 <li><code>house/batcontrol/max_charging_from_grid_limit</code> - Max charging from grid limit in effect (0.0-1.0)</li>
 <li><code>house/batcontrol/max_charging_from_grid_limit_percent</code> - Max charging from grid limit in effect in %</li>
 <li><code>house/batcontrol/min_grid_charge_soc</code> - Optional configured minimum grid-charge target (0.0-1.0)</li>
