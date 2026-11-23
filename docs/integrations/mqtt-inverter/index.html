@@ -2183,9 +2183,12 @@ idempotently.</p>
 <span class="n">MQTT_PASSWORD</span> <span class="o">=</span> <span class="s2">"secret"</span>
 <span class="n">BASE_TOPIC</span> <span class="o">=</span> <span class="s2">"batcontrol/inverters/0"</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">on_connect</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">rc</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Called when connected to MQTT broker"""</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Connected with result code </span><span class="si">{</span><span class="n">rc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">on_connect</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">reason_code</span><span class="p">,</span> <span class="n">properties</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Called when the broker answered the connection request"""</span>
+    <span class="k">if</span> <span class="n">reason_code</span><span class="o">.</span><span class="n">is_failure</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Connection refused: </span><span class="si">{</span><span class="n">reason_code</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Connected with result code </span><span class="si">{</span><span class="n">reason_code</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Publish initial state (RETAINED)</span>
     <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/capacity"</span><span class="p">,</span> <span class="s2">"10000"</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2227,8 +2230,8 @@ idempotently.</p>
 <span class="w">    </span><span class="sd">"""Publish current State of Charge"""</span>
     <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/status/soc"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">soc_value</span><span class="p">))</span>
 
-<span class="c1"># Create MQTT client</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+<span class="c1"># Create MQTT client (paho-mqtt 2.x callback API)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">callback_api_version</span><span class="o">=</span><span class="n">mqtt</span><span class="o">.</span><span class="n">CallbackAPIVersion</span><span class="o">.</span><span class="n">VERSION2</span><span class="p">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">username_pw_set</span><span class="p">(</span><span class="n">MQTT_USER</span><span class="p">,</span> <span class="n">MQTT_PASSWORD</span><span class="p">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">on_connect</span> <span class="o">=</span> <span class="n">on_connect</span>
 <span class="n">client</span><span class="o">.</span><span class="n">on_message</span> <span class="o">=</span> <span class="n">on_message</span>
