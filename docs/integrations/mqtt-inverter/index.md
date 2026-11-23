@@ -47,10 +47,15 @@ These topics should be **updated at least every 2 minutes** to ensure fresh data
 
 These topics are published by batcontrol and **MUST NOT be retained**:
 
-| Topic                        | Description          | Values                                               |
-| ---------------------------- | -------------------- | ---------------------------------------------------- |
-| `<base>/command/mode`        | Set operating mode   | `force_charge`, `allow_discharge`, `avoid_discharge` |
-| `<base>/command/charge_rate` | Set charge rate in W | float                                                |
+| Topic                                      | Description                                                                     | Values                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `<base>/command/mode`                      | Set operating mode                                                              | `force_charge`, `allow_discharge`, `avoid_discharge`, `limit_battery_charge` |
+| `<base>/command/charge_rate`               | Grid charge rate in W for `force_charge`                                        | number                                                                       |
+| `<base>/command/limit_battery_charge_rate` | Maximum battery charge rate in W for `limit_battery_charge` (`0` = no charging) | number                                                                       |
+
+batcontrol publishes `command/mode` first and then the matching rate topic (`charge_rate` or `limit_battery_charge_rate`), both QoS 1 and not retained. Apply a rate when its rate message arrives; don't rely on a rate from an earlier command. Commands are re-sent on every control cycle, so handle them idempotently.
+
+`limit_battery_charge_rate` is already clamped to the inverter's `max_pv_charge_rate`/`min_pv_charge_rate` configuration. It is unrelated to `status/max_charge_rate`, which limits grid charging (`charge_rate`).
 
 ## Why Retention Matters
 
@@ -113,8 +118,9 @@ Your external system (inverter bridge script, inverter firmware, etc.) must:
 1. At startup batcontrol waits up to 3 minutes for the first SOC value. If none arrives, batcontrol terminates with an error.
 1. Once running, a missing SOC does not block: batcontrol skips the control cycle and retries on the next run. If the outage lasts longer than [`outage_tolerance_minutes`](https://mastr.github.io/batcontrol/configuration/inverter-configuration/#outage_tolerance_minutes) (default 24, counted from the first skipped cycle), batcontrol terminates. With `enable_resilient_wrapper: false` the first missing SOC terminates batcontrol.
 1. **Subscribe to command topics (non-retained):**
-1. Mode changes (`force_charge`, `allow_discharge`, `avoid_discharge`)
-1. Charge rate adjustments
+1. Mode changes (`force_charge`, `allow_discharge`, `avoid_discharge`, `limit_battery_charge`)
+1. Charge rate adjustments (`charge_rate`, `limit_battery_charge_rate`)
+1. Handle all four modes. A bridge that ignores `limit_battery_charge` stays in whatever mode came before (possibly `force_charge` or `avoid_discharge`): peak shaving has no effect, and the battery may be held or charged from the grid when it should not be. If your inverter cannot limit the charge rate, treat `limit_battery_charge` like `allow_discharge`.
 1. **Handle reconnection gracefully:**
 1. Re-publish all status topics as RETAINED on reconnect
 1. Don't retain command topics to avoid stale command execution
@@ -162,10 +168,17 @@ def on_message(client, userdata, message):
         # - force_charge: Enable grid charging
         # - allow_discharge: Normal operation
         # - avoid_discharge: Prevent battery discharge
+        # - limit_battery_charge: Normal operation; the charge cap follows
+        #   in command/limit_battery_charge_rate (0 = no charging)
+        # - any other mode: remove a previously set charge cap
 
     elif topic == f"{BASE_TOPIC}/command/charge_rate":
-        print(f"Setting charge rate to: {value}W")
-        # TODO: Implement your charge rate control here
+        print(f"Setting grid charge rate to: {value}W")
+        # TODO: Implement your grid charge rate control here
+
+    elif topic == f"{BASE_TOPIC}/command/limit_battery_charge_rate":
+        print(f"Limiting battery charge rate to: {value}W")
+        # TODO: Implement your battery charge limit here
 
 def publish_soc(client, soc_value):
     """Publish current State of Charge"""
@@ -200,7 +213,7 @@ except KeyboardInterrupt:
 
 ## Operating Modes
 
-The MQTT inverter supports three operating modes:
+The MQTT inverter supports four operating modes:
 
 ### force_charge
 
@@ -232,6 +245,20 @@ Topic: <base>/command/mode
 Payload: avoid_discharge
 ```
 
+### limit_battery_charge
+
+Normal operation, but the battery charges at most at the given rate; the battery can still discharge to supply loads. Used by [peak shaving](https://mastr.github.io/batcontrol/features/peak-shaving/index.md) to delay PV charging, so the battery still has room when the PV peak comes, and when mode `8` is set via the [MQTT API](https://mastr.github.io/batcontrol/integrations/mqtt-api/index.md). `0` blocks battery charging entirely; PV not used by the house is exported (or curtailed if export is limited).
+
+```
+Topic: <base>/command/mode
+Payload: limit_battery_charge
+
+Topic: <base>/command/limit_battery_charge_rate
+Payload: 1500  # Charge the battery at most at 1500W
+```
+
+The limit stays active until batcontrol sends another mode. On `allow_discharge`, `avoid_discharge` or `force_charge` the bridge must remove the limit.
+
 ## Home Assistant Integration
 
 The MQTT inverter automatically publishes Home Assistant MQTT Discovery messages for all status and command topics. This allows you to monitor your inverter's status and commands in Home Assistant without manual configuration.
@@ -245,6 +272,9 @@ Discovered entities include:
 - MQTT Inverter Status Max Charge Rate
 - MQTT Inverter Command Mode
 - MQTT Inverter Command Charge Rate
+- MQTT Inverter Command Limit Battery Charge Rate
+
+The command sensors show the last value batcontrol sent. Commands are not retained, so after a Home Assistant or broker restart they stay unknown until batcontrol sends the next command.
 
 ## Limitations
 

@@ -1257,6 +1257,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#limit_battery_charge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        limit_battery_charge
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1820,6 +1831,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#limit_battery_charge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        limit_battery_charge
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2001,15 +2023,28 @@
 <tr>
 <td><code>&lt;base&gt;/command/mode</code></td>
 <td>Set operating mode</td>
-<td><code>force_charge</code>, <code>allow_discharge</code>, <code>avoid_discharge</code></td>
+<td><code>force_charge</code>, <code>allow_discharge</code>, <code>avoid_discharge</code>, <code>limit_battery_charge</code></td>
 </tr>
 <tr>
 <td><code>&lt;base&gt;/command/charge_rate</code></td>
-<td>Set charge rate in W</td>
-<td>float</td>
+<td>Grid charge rate in W for <code>force_charge</code></td>
+<td>number</td>
+</tr>
+<tr>
+<td><code>&lt;base&gt;/command/limit_battery_charge_rate</code></td>
+<td>Maximum battery charge rate in W for <code>limit_battery_charge</code> (<code>0</code> = no charging)</td>
+<td>number</td>
 </tr>
 </tbody>
 </table>
+<p>batcontrol publishes <code>command/mode</code> first and then the matching rate topic
+(<code>charge_rate</code> or <code>limit_battery_charge_rate</code>), both QoS 1 and not retained.
+Apply a rate when its rate message arrives; don't rely on a rate from an
+earlier command. Commands are re-sent on every control cycle, so handle them
+idempotently.</p>
+<p><code>limit_battery_charge_rate</code> is already clamped to the inverter's
+<code>max_pv_charge_rate</code>/<code>min_pv_charge_rate</code> configuration. It is unrelated to
+<code>status/max_charge_rate</code>, which limits grid charging (<code>charge_rate</code>).</p>
 <h2 id="why-retention-matters">Why Retention Matters<a class="headerlink" href="#why-retention-matters" title="Permanent link">&para;</a></h2>
 <p>⚠️ <strong>Critical for proper operation:</strong></p>
 <ul>
@@ -2119,9 +2154,16 @@
 <li>
 <p><strong>Subscribe to command topics (non-retained):</strong></p>
 </li>
-<li>Mode changes (<code>force_charge</code>, <code>allow_discharge</code>, <code>avoid_discharge</code>)</li>
+<li>Mode changes (<code>force_charge</code>, <code>allow_discharge</code>, <code>avoid_discharge</code>,
+     <code>limit_battery_charge</code>)</li>
+<li>Charge rate adjustments (<code>charge_rate</code>, <code>limit_battery_charge_rate</code>)</li>
 <li>
-<p>Charge rate adjustments</p>
+<p>Handle all four modes. A bridge that ignores <code>limit_battery_charge</code>
+     stays in whatever mode came before (possibly <code>force_charge</code> or
+     <code>avoid_discharge</code>): peak shaving has no effect, and the battery may be
+     held or charged from the grid when it should not be. If your inverter
+     cannot limit the charge rate, treat <code>limit_battery_charge</code> like
+     <code>allow_discharge</code>.</p>
 </li>
 <li>
 <p><strong>Handle reconnection gracefully:</strong></p>
@@ -2169,10 +2211,17 @@
         <span class="c1"># - force_charge: Enable grid charging</span>
         <span class="c1"># - allow_discharge: Normal operation</span>
         <span class="c1"># - avoid_discharge: Prevent battery discharge</span>
+        <span class="c1"># - limit_battery_charge: Normal operation; the charge cap follows</span>
+        <span class="c1">#   in command/limit_battery_charge_rate (0 = no charging)</span>
+        <span class="c1"># - any other mode: remove a previously set charge cap</span>
 
     <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/charge_rate"</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Setting charge rate to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">W"</span><span class="p">)</span>
-        <span class="c1"># TODO: Implement your charge rate control here</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Setting grid charge rate to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">W"</span><span class="p">)</span>
+        <span class="c1"># TODO: Implement your grid charge rate control here</span>
+
+    <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">BASE_TOPIC</span><span class="si">}</span><span class="s2">/command/limit_battery_charge_rate"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Limiting battery charge rate to: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">W"</span><span class="p">)</span>
+        <span class="c1"># TODO: Implement your battery charge limit here</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">publish_soc</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">soc_value</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Publish current State of Charge"""</span>
@@ -2205,7 +2254,7 @@
     <span class="n">client</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
 </code></pre></div>
 <h2 id="operating-modes">Operating Modes<a class="headerlink" href="#operating-modes" title="Permanent link">&para;</a></h2>
-<p>The MQTT inverter supports three operating modes:</p>
+<p>The MQTT inverter supports four operating modes:</p>
 <h3 id="force_charge">force_charge<a class="headerlink" href="#force_charge" title="Permanent link">&para;</a></h3>
 <p>Forces the battery to charge from grid at the specified rate. Used during low-price periods.</p>
 <div class="highlight"><pre><span></span><code>Topic: &lt;base&gt;/command/mode
@@ -2224,6 +2273,22 @@ Payload: allow_discharge
 <div class="highlight"><pre><span></span><code>Topic: &lt;base&gt;/command/mode
 Payload: avoid_discharge
 </code></pre></div>
+<h3 id="limit_battery_charge">limit_battery_charge<a class="headerlink" href="#limit_battery_charge" title="Permanent link">&para;</a></h3>
+<p>Normal operation, but the battery charges at most at the given rate; the
+battery can still discharge to supply loads. Used by
+<a href="../../features/peak-shaving/">peak shaving</a> to delay PV charging, so the
+battery still has room when the PV peak comes, and when mode <code>8</code> is set via
+the <a href="../mqtt-api/">MQTT API</a>. <code>0</code> blocks battery charging entirely; PV not used
+by the house is exported (or curtailed if export is limited).</p>
+<div class="highlight"><pre><span></span><code>Topic: &lt;base&gt;/command/mode
+Payload: limit_battery_charge
+
+Topic: &lt;base&gt;/command/limit_battery_charge_rate
+Payload: 1500  # Charge the battery at most at 1500W
+</code></pre></div>
+<p>The limit stays active until batcontrol sends another mode. On
+<code>allow_discharge</code>, <code>avoid_discharge</code> or <code>force_charge</code> the bridge must remove
+the limit.</p>
 <h2 id="home-assistant-integration">Home Assistant Integration<a class="headerlink" href="#home-assistant-integration" title="Permanent link">&para;</a></h2>
 <p>The MQTT inverter automatically publishes Home Assistant MQTT Discovery messages for all status and command topics. This allows you to monitor your inverter's status and commands in Home Assistant without manual configuration.</p>
 <p>Discovered entities include:
@@ -2233,7 +2298,11 @@ Payload: avoid_discharge
 - MQTT Inverter Status Max SOC
 - MQTT Inverter Status Max Charge Rate
 - MQTT Inverter Command Mode
-- MQTT Inverter Command Charge Rate</p>
+- MQTT Inverter Command Charge Rate
+- MQTT Inverter Command Limit Battery Charge Rate</p>
+<p>The command sensors show the last value batcontrol sent. Commands are not
+retained, so after a Home Assistant or broker restart they stay unknown until
+batcontrol sends the next command.</p>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>No bidirectional acknowledgment:</strong> batcontrol assumes commands succeed immediately</li>
