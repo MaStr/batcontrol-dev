@@ -2330,8 +2330,8 @@ it: Docker with a <code>restart:</code> policy, the Home Assistant add-on with i
 <span class="w">  </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">house/batcontrol</span>
 <span class="w">  </span><span class="nt">tls</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">cafile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/ssl/certs/ca-certificates.crt</span><span class="w">   </span><span class="c1"># required when tls: true</span>
-<span class="w">  </span><span class="nt">certfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/ssl/certs/client.crt</span><span class="w">           </span><span class="c1"># optional, for mutual TLS</span>
-<span class="w">  </span><span class="nt">keyfile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/ssl/certs/client.key</span><span class="w">            </span><span class="c1"># optional, for mutual TLS</span>
+<span class="w">  </span><span class="c1"># certfile: /etc/ssl/certs/client.crt         # only for mutual TLS</span>
+<span class="w">  </span><span class="c1"># keyfile: /etc/ssl/certs/client.key          # only for mutual TLS</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2367,8 +2367,17 @@ it: Docker with a <code>restart:</code> policy, the Home Assistant add-on with i
 <td>—</td>
 <td>Path to the client private key (optional, for mutual TLS)</td>
 </tr>
+<tr>
+<td><code>ciphers</code></td>
+<td>string</td>
+<td>—</td>
+<td>Optional OpenSSL cipher string (e.g. <code>ECDHE+AESGCM</code>); default: Python's ssl defaults</td>
+</tr>
 </tbody>
 </table>
+<p>All configured files must exist; otherwise batcontrol stops at startup with an error naming the
+missing file (e.g. <code>mqtt: certfile not found or not a file: /etc/ssl/certs/client.crt</code>). Leave <code>certfile</code> and
+<code>keyfile</code> unset unless your broker requires client certificates.</p>
 <h3 id="grid-charge-lock-external-hemsgrid-operator-signal">Grid Charge Lock (external HEMS/grid operator signal)<a class="headerlink" href="#grid-charge-lock-external-hemsgrid-operator-signal" title="Permanent link">&para;</a></h3>
 <p>Some grid operators (in Germany: section 14a EnWG) or home energy management
 systems (HEMS) can request that controllable consumption devices stop drawing
