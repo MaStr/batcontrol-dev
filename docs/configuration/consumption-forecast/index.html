@@ -2530,7 +2530,10 @@ docker<span class="w"> </span><span class="nb">kill</span><span class="w"> </spa
 <li>SIGHUP is not available on Windows.</li>
 </ul>
 <h3 id="default-load-profile">Default Load Profile<a class="headerlink" href="#default-load-profile" title="Permanent link">&para;</a></h3>
-<p>If no load profile is specified, batcontrol uses <code>default_load_profile.csv</code> as a fallback.</p>
+<p>If no <code>load_profile</code> is specified (or it is empty), batcontrol uses a default load profile that
+ships with batcontrol itself, independent of your <code>config/</code> folder. It is the same generic
+household profile as <code>load_profile_default.csv</code> in the config template; for a better forecast,
+provide your own (see below).</p>
 <h3 id="creating-a-load-profile-from-a-fronius-solarweb-export">Creating a Load Profile from a Fronius Solar.web Export<a class="headerlink" href="#creating-a-load-profile-from-a-fronius-solarweb-export" title="Permanent link">&para;</a></h3>
 <p>If your inverter reports to Fronius Solar.web, you can turn your own consumption history into a
 load profile. Open the <strong><a href="../../assets/load-profile-generator.html">Load Profile Generator</a></strong>, select
@@ -2827,8 +2830,9 @@ python<span class="w"> </span>test_homeassistant_forecast.py
 <h3 id="csv-method">CSV Method<a class="headerlink" href="#csv-method" title="Permanent link">&para;</a></h3>
 <p><strong>Problem:</strong> "The annual consumption of the applied load profile is X kWh"</p>
 <p><strong>Solution:</strong> This is just informational. The profile will be automatically scaled to match your <code>annual_consumption</code> setting.</p>
-<p><strong>Problem:</strong> "No load profile specified, using default"</p>
-<p><strong>Solution:</strong> Specify a valid <code>load_profile</code> filename in your configuration.</p>
+<p><strong>Problem:</strong> "No load profile specified, using the bundled default"</p>
+<p><strong>Solution:</strong> This is a warning, not an error: batcontrol falls back to its bundled generic
+household profile. For a better forecast, set <code>load_profile</code> to a file in your <code>config/</code> folder.</p>
 <h3 id="homeassistant-api-method">HomeAssistant API Method<a class="headerlink" href="#homeassistant-api-method" title="Permanent link">&para;</a></h3>
 <p><strong>Problem:</strong> "Authentication failed" or "expected str at 'access_token'. Got None"</p>
 <p><strong>Solution:</strong>
