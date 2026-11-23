@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -1905,14 +1905,25 @@ With adding <code>#</code> in front of the value, this limit is not set and will
 <p>At startup, batcontrol:</p>
 <ul>
 <li><strong>Enables the Solar.API</strong> (<code>SolarAPIv1Enabled</code>), which is required to read SoC and power values.</li>
-<li><strong>Saves a backup</strong> of the current battery settings (min/max SoC, energy-management mode/power, grid-charging flag) to <code>config/battery_config.json</code> and of the time-of-use schedule to <code>config/timeofuse_config.json</code>. Both files are only written if they do not already exist — after an unclean stop the existing files are preserved.</li>
+<li><strong>Saves a backup</strong> of the current battery settings (min/max SoC, energy-management mode/power, grid-charging flag) to <code>battery_config_&lt;id&gt;.json</code> and of the time-of-use schedule to <code>timeofuse_config_&lt;id&gt;.json</code>. Both files are only written if they do not already exist — after an unclean stop the existing files are preserved.</li>
 <li><strong>Enables charging from grid</strong> (<code>HYB_EVU_CHARGEFROMGRID</code>), so batcontrol can charge the battery during cheap price windows.</li>
 </ul>
 <p>During operation, batcontrol controls the battery by writing battery settings (min/max SoC in manual mode, energy-management mode and power) and time-of-use schedules.</p>
+<p><strong>Where the backups are stored:</strong> in the <code>fronius/</code> folder of the
+<a href="../../getting-started/installation/#application-data-and-provider-caches">data directory</a>
+(<code>./data/fronius/</code> locally, <code>/app/data/fronius/</code> in Docker, <code>/data/data/fronius/</code> in the
+Home Assistant add-on). <code>&lt;id&gt;</code> is derived from the inverter's <code>address</code> (a short
+URL-safe base64 SHA-256 hash), so every inverter has its own files and changing the
+order of several inverters in the config does not mix them up.</p>
+<div class="admonition note">
+<p class="admonition-title">Upgrading from 0.11.0 or older</p>
+<p>Older versions stored a single shared <code>config/timeofuse_config.json</code> and
+<code>config/battery_config.json</code>. These files are no longer read and can be deleted.</p>
+</div>
 <p>On a clean shutdown, batcontrol restores the original settings. The two backup files behave differently:</p>
 <ul>
-<li><strong><code>config/timeofuse_config.json</code></strong> is read from disk and used for the time-of-use restore. If the file was preserved after a crash, the original time-of-use schedule is correctly restored on the next clean shutdown.</li>
-<li><strong><code>config/battery_config.json</code></strong> is written as a reference, but the battery restore uses the settings fetched live from the inverter at startup — the file is not read back. If batcontrol crashed and the inverter still holds batcontrol-modified settings, the live fetch captures those modified settings, so battery settings are not automatically restored to the original pre-crash state. The file can be inspected manually to see what the original settings were.</li>
+<li><strong><code>timeofuse_config_&lt;id&gt;.json</code></strong> is read from disk and used for the time-of-use restore. If the file was preserved after a crash, the original time-of-use schedule is correctly restored on the next clean shutdown.</li>
+<li><strong><code>battery_config_&lt;id&gt;.json</code></strong> is written as a reference, but the battery restore uses the settings fetched live from the inverter at startup — the file is not read back. If batcontrol crashed and the inverter still holds batcontrol-modified settings, the live fetch captures those modified settings, so battery settings are not automatically restored to the original pre-crash state. The file can be inspected manually to see what the original settings were.</li>
 </ul>
 <p>Both files are deleted after a successful restore. The Solar.API stays enabled — disable it manually in the inverter web UI if no other software needs it (note: the Fronius Wattpilot wallbox requires the Solar.API).</p>
 <h3 id="additional-parameters-since-056">Additional Parameters (since 0.5.6)<a class="headerlink" href="#additional-parameters-since-056" title="Permanent link">&para;</a></h3>

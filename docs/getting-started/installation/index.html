@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -2076,6 +2076,12 @@ provider can recalculate the remaining forecast at the current time. HA solar's
 automatic unit detection can use unit metadata from a usable cached response.
 Local CSV consumption profiles and the separate dynamic network-fee fetcher are
 outside this cache's scope.</p>
+<p>The Fronius GEN24 inverter also keeps its settings backups in the data directory,
+under <code>data/fronius/</code> (see
+<a href="../../configuration/inverter-configuration/#fronius_gen24">Fronius GEN24</a>). They are
+deleted after a clean shutdown; after a crash they are needed to restore the original
+inverter settings, so the data directory must survive a container replacement.
+<code>--clear-cache</code> does not touch them.</p>
 <p>For Docker, use a bind mount as shown above or a named volume at <code>/app/data</code>.
 The Dockerfile also declares that path as a volume, but an automatically created
 anonymous volume is not reliably reused when replacing a container.</p>

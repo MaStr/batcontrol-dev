@@ -184,6 +184,8 @@ On startup, providers load usable cached responses and attempt their normal refr
 
 Persist raw timestamped responses rather than relative forecast slots so the provider can recalculate the remaining forecast at the current time. HA solar's automatic unit detection can use unit metadata from a usable cached response. Local CSV consumption profiles and the separate dynamic network-fee fetcher are outside this cache's scope.
 
+The Fronius GEN24 inverter also keeps its settings backups in the data directory, under `data/fronius/` (see [Fronius GEN24](https://mastr.github.io/batcontrol/configuration/inverter-configuration/#fronius_gen24)). They are deleted after a clean shutdown; after a crash they are needed to restore the original inverter settings, so the data directory must survive a container replacement. `--clear-cache` does not touch them.
+
 For Docker, use a bind mount as shown above or a named volume at `/app/data`. The Dockerfile also declares that path as a volume, but an automatically created anonymous volume is not reliably reused when replacing a container.
 
 ### Clearing the cache
