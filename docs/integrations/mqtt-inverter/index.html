@@ -2103,8 +2103,18 @@
 <li>
 <p><strong>Publish current SOC regularly (at least every 2 minutes):</strong></p>
 </li>
+<li>Current State of Charge as a normal message (can be retained or non-retained)</li>
+<li>Set <code>cache_ttl</code> above the interval at which your bridge publishes SOC.
+     A SOC value older than <code>cache_ttl</code> counts as missing.</li>
+<li>At startup batcontrol waits up to 3 minutes for the first SOC value. If
+     none arrives, batcontrol terminates with an error.</li>
 <li>
-<p>Current State of Charge as a normal message (can be retained or non-retained)</p>
+<p>Once running, a missing SOC does not block: batcontrol skips the control
+     cycle and retries on the next run. If the outage lasts longer than
+     <a href="../../configuration/inverter-configuration/#outage_tolerance_minutes"><code>outage_tolerance_minutes</code></a>
+     (default 24, counted from the first skipped cycle), batcontrol terminates.
+     With <code>enable_resilient_wrapper: false</code> the first missing SOC terminates
+     batcontrol.</p>
 </li>
 <li>
 <p><strong>Subscribe to command topics (non-retained):</strong></p>
