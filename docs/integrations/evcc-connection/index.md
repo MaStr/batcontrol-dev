@@ -224,6 +224,7 @@ evcc:
 ### Common Issues
 
 1. **Connection Failed**
+1. At startup batcontrol tries to reach the evcc broker 5 times, 10 seconds apart. If it is still unreachable, or does not accept the connection (credentials, TLS), batcontrol restores the inverter settings and exits with an error (exit code 1), like for the [MQTT API](https://mastr.github.io/batcontrol/integrations/mqtt-api/#connection-reliability). Let Docker, the Home Assistant add-on watchdog or systemd restart it.
 1. Verify evcc MQTT broker settings match batcontrol configuration
 1. Check network connectivity between batcontrol and MQTT broker
 1. Ensure MQTT credentials are correct

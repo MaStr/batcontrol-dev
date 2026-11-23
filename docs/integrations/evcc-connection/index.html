@@ -2458,6 +2458,11 @@
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Connection Failed</strong></li>
+<li>At startup batcontrol tries to reach the evcc broker 5 times, 10 seconds apart.
+     If it is still unreachable, or does not accept the connection (credentials, TLS),
+     batcontrol restores the inverter settings and exits with an error (exit code 1),
+     like for the <a href="../mqtt-api/#connection-reliability">MQTT API</a>. Let Docker, the Home
+     Assistant add-on watchdog or systemd restart it.</li>
 <li>Verify evcc MQTT broker settings match batcontrol configuration</li>
 <li>Check network connectivity between batcontrol and MQTT broker</li>
 <li>

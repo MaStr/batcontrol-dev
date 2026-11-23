@@ -2287,8 +2287,8 @@
 <h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
 <h3 id="connection-reliability">Connection Reliability<a class="headerlink" href="#connection-reliability" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="nt">mqtt</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">retry_attempts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">    </span><span class="c1"># Number of connection retry attempts</span>
-<span class="w">  </span><span class="nt">retry_delay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">      </span><span class="c1"># Delay in seconds between retry attempts</span>
+<span class="w">  </span><span class="nt">retry_attempts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">    </span><span class="c1"># Number of connection attempts at startup</span>
+<span class="w">  </span><span class="nt">retry_delay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">      </span><span class="c1"># Delay in seconds between attempts</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2304,16 +2304,23 @@
 <td><code>retry_attempts</code></td>
 <td>integer</td>
 <td><code>5</code></td>
-<td>Number of times to retry connection on failure</td>
+<td>Number of connection attempts at startup (at least 1)</td>
 </tr>
 <tr>
 <td><code>retry_delay</code></td>
 <td>integer</td>
 <td><code>10</code></td>
-<td>Seconds to wait between retry attempts</td>
+<td>Seconds to wait between attempts</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Broker not reachable at startup:</strong> batcontrol tries to connect <code>retry_attempts</code> times
+(connection refused, timeout, DNS errors). If the broker is still not reachable, or does
+not accept the connection within 30 seconds (e.g. wrong credentials or TLS settings),
+batcontrol restores the inverter settings it has already changed and exits with an error
+(exit code 1). It does not run without the configured broker. Let your supervisor restart
+it: Docker with a <code>restart:</code> policy, the Home Assistant add-on with its watchdog enabled, or systemd with
+<code>Restart=on-failure</code>. Once running, a lost connection is handled by automatic reconnects.</p>
 <h3 id="tlsssl-configuration">TLS/SSL Configuration<a class="headerlink" href="#tlsssl-configuration" title="Permanent link">&para;</a></h3>
 <p>To connect to a TLS-secured MQTT broker, set <code>tls: true</code> and provide the path to your CA certificate. For mutual TLS, also supply a client certificate and key.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">mqtt</span><span class="p">:</span>
