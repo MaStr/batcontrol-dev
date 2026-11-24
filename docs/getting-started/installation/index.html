@@ -1963,7 +1963,7 @@
 <h3 id="consumption-forecast">Consumption forecast<a class="headerlink" href="#consumption-forecast" title="Permanent link">&para;</a></h3>
 <p>Your annual electricity consumption in kWh. The default load profile covers typical household patterns, so this single number is enough to get started.</p>
 <h2 id="configuration-file">Configuration File<a class="headerlink" href="#configuration-file" title="Permanent link">&para;</a></h2>
-<p>Docker (plain or Compose) and local Python installs use a <code>batcontrol_config.yaml</code> in the <code>config/</code> directory. If none is present when the Docker container starts for the first time, batcontrol copies a sample configuration that uses a dummy inverter. Home Assistant add-on configuration is done via the add-on UI (no local YAML file).</p>
+<p>Docker (plain or Compose) and local Python installs use a <code>batcontrol_config.yaml</code> in the <code>config/</code> directory. If none is present when the Docker container starts for the first time, batcontrol copies a sample configuration that uses a dummy inverter. The Home Assistant add-on is normally configured via the add-on UI; optionally it can use an own YAML file (see <a href="#home-assistant-add-on">Home Assistant Add-on</a>).</p>
 <p>Once you are ready, edit <code>config/batcontrol_config.yaml</code> and set your inverter type, credentials, tariff provider, and PV details. See <a href="../../configuration/batcontrol-configuration/">Main Configuration</a> and the other configuration pages for a full reference.</p>
 <h2 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h2>
 <p>This is the recommended way to run batcontrol for most users.</p>
@@ -2048,7 +2048,21 @@ in <code>batcontrol_config.yaml</code>:</p>
 <span class="w">    </span><span class="nt">restart</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unless-stopped</span>
 </code></pre></div>
 <h2 id="home-assistant-add-on">Home Assistant Add-on<a class="headerlink" href="#home-assistant-add-on" title="Permanent link">&para;</a></h2>
-<p>Add the <a href="https://github.com/MaStr/batcontrol_ha_addon">batcontrol_ha_addon</a> repository to your Home Assistant add-on store. Configuration is done through the add-on UI rather than a YAML file.</p>
+<p>Add the <a href="https://github.com/MaStr/batcontrol_ha_addon">batcontrol_ha_addon</a> repository to your Home Assistant add-on store. Configuration is normally done through the add-on UI.</p>
+<p><strong>Own configuration file (advanced):</strong> if the file
+<code>/addon_configs/&lt;HEXCODE&gt;_batcontrol/batcontrol_config.yaml</code> exists, the add-on starts batcontrol
+with this file instead of the UI options.</p>
+<ul>
+<li><strong>All settings in the add-on UI are then ignored.</strong> The UI does not show this; only the add-on log
+  says <code>Using Config file found in addon config folder.</code></li>
+<li>Home Assistant does not check the file, so the UI's range and type checks do not apply.
+  batcontrol validates the values itself at startup.</li>
+<li>Start from <a href="https://github.com/MaStr/batcontrol/blob/main/config/batcontrol_config_dummy.yaml"><code>config/batcontrol_config_dummy.yaml</code></a>.
+  For the sidebar panel keep <code>api.enabled: true</code>, <code>api.host: 0.0.0.0</code> and <code>api.port: 8080</code>.</li>
+<li>To return to the UI options, rename or delete the file and restart the add-on.</li>
+</ul>
+<p>A custom <code>load_profile.csv</code> in the same folder is picked up the same way. Details are in the add-on
+documentation (DOCS tab of the add-on).</p>
 <h2 id="local-python">Local Python<a class="headerlink" href="#local-python" title="Permanent link">&para;</a></h2>
 <p>Requires Python 3.11 or newer (3.11 - 3.15 are supported and tested in CI; the
 Docker image ships Python 3.15) and <a href="https://docs.astral.sh/uv/">uv</a>.</p>
