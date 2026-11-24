@@ -1765,6 +1765,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/threading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threading and Control Lock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2568,6 +2596,11 @@ see the Forecast Data Format section below.</p>
 <li><code>house/batcontrol/peak_shaving/price_limit/set</code> - Set price threshold in EUR/kWh (<code>-1</code> disables the price component)</li>
 </ul>
 <p>All <code>/set</code> changes are temporary runtime overrides and are not written back to the configuration file.</p>
+<p>Commands are applied one at a time, in the order they arrive. A command that
+arrives while a control cycle is running is applied right after that cycle
+(usually within a second, longer only while the inverter is slow to answer),
+so the cycle cannot overwrite it with a decision it made before the command
+arrived. See <a href="../../development/threading/">Threading and Control Lock</a>.</p>
 <h3 id="inverter-control-per-inverter-eg-inverter-0">Inverter Control (per inverter, e.g., inverter 0)<a class="headerlink" href="#inverter-control-per-inverter-eg-inverter-0" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>house/batcontrol/inverters/0/max_grid_charge_rate/set</code> - Set max grid charge rate in W</li>

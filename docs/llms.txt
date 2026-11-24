@@ -53,4 +53,5 @@ across the day using forecasts, and works with both dynamic and static tariffs.
 - [Frontend Build](https://mastr.github.io/batcontrol/development/frontend-build/index.md): Building the dashboard and how it reaches the wheel
 - [MCP Server Specification](https://mastr.github.io/batcontrol/development/mcp-spec/index.md): Design contract for the read-only MCP server
 - [MCP Evaluation](https://mastr.github.io/batcontrol/development/mcp-evaluation/index.md): Questions for checking the MCP tools against real use
+- [Threading and Control Lock](https://mastr.github.io/batcontrol/development/threading/index.md): Threading model, the control lock and how external commands are serialized
 

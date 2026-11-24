@@ -1760,6 +1760,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/threading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threading and Control Lock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2402,6 +2430,10 @@ missing file (e.g. <code>evcc: certfile not found or not a file: /etc/ssl/certs/
 <li><strong>Limit Adjustment</strong>: If <code>battery_halt_topic</code> configured, discharge limit is temporarily set to buffer SOC</li>
 <li><strong>Logging</strong>: Batcontrol logs: <code>"evcc is charging, set block"</code> (only if blocking enabled)</li>
 </ol>
+<p>If the block arrives while batcontrol is in the middle of an evaluation, it is
+applied right after that evaluation, so the evaluation cannot switch the
+battery back to discharging. See
+<a href="../../development/threading/">Threading and Control Lock</a>.</p>
 <h3 id="when-charging-stops">When Charging Stops<a class="headerlink" href="#when-charging-stops" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Battery Unblocking</strong>: Battery discharge blocking is removed</li>
