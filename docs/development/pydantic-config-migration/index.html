@@ -1,0 +1,2608 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Optimize your electricity costs by re-charging your PV battery when electricity is cheap and there is not enough solar power available.">
+      
+      
+      
+        <link rel="canonical" href="https://mastr.github.io/batcontrol/development/pydantic-config-migration/">
+      
+      
+        <link rel="prev" href="../mcp-evaluation/">
+      
+      
+        <link rel="next" href="../threading/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Pydantic Config Migration - Batcontrol Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/css/peak-shaving-charts.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#migration-plan-pydantic-based-configuration-data-model" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Batcontrol Documentation" class="md-header__button md-logo" aria-label="Batcontrol Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.67 4H15V2H9v2H7.33A1.33 1.33 0 0 0 6 5.33v15.33C6 21.4 6.6 22 7.33 22h9.33c.74 0 1.34-.6 1.34-1.33V5.33C18 4.6 17.4 4 16.67 4M11 20v-5.5H9L13 7v5.5h2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Batcontrol Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pydantic Config Migration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MaStr/batcontrol" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MaStr/batcontrol
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Batcontrol Documentation" class="md-nav__button md-logo" aria-label="Batcontrol Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.67 4H15V2H9v2H7.33A1.33 1.33 0 0 0 6 5.33v15.33C6 21.4 6.6 22 7.33 22h9.33c.74 0 1.34-.6 1.34-1.33V5.33C18 4.6 17.4 4 16.67 4M11 20v-5.5H9L13 7v5.5h2"/></svg>
+
+    </a>
+    Batcontrol Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MaStr/batcontrol" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MaStr/batcontrol
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/how-batcontrol-works/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Batcontrol Works
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/batcontrol-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Main Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/inverter-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inverter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/multiple-inverters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiple Inverters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/dynamic-tariff-provider/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Tariff Provider
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/solar-forecast/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Solar Forecast
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/consumption-forecast/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Consumption Forecast
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/battery-control-expert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Battery Control Expert
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/peak-shaving/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Peak Shaving
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/peak-shaving-scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Peak Shaving Scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/price-difference-calculation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Price Difference Calculation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/decision-sensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Understanding the Decision Sensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/mqtt-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/forecast-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Forecast Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/mqtt-inverter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT Inverter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/evcc-connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    evcc Connection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../15-min-transform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15-Minute Interval Transformation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../solar-limit-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Solar Feed-in Limit Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decision-trace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision Trace and Journal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dashboard-spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-build/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontend Build
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Server Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Config Migration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Config Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-migration-is-and-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this migration is, and is not
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-dependency-is-already-there" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dependency is already there
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#home-assistant-add-on-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Home Assistant add-on constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Home Assistant add-on constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#string-inputs-from-the-add-on-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        String inputs from the add-on schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normalisation-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normalisation layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#absence-is-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Absence is information
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Absence is information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-mechanism-that-enforces-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The mechanism that enforces it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#severity-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Severity model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Severity model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#escape-hatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escape hatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regression-corpus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regression corpus
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target layout
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Target layout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caveat-pvinstallations-has-no-local-discriminator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveat: pvinstallations has no local discriminator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequence-one-section-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence: one section first
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sequence: one section first">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-battery_control-battery_control_expert-warn-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1 — battery_control + battery_control_expert (warn mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-decide-after-one-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2 — decide after one release
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-3-strict-by-default-add-on-reconciliation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3 — strict by default, add-on reconciliation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-in-this-plan-the-schema-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not in this plan: the schema generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known costs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threading and Control Lock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-migration-is-and-is-not" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this migration is, and is not
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-dependency-is-already-there" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The dependency is already there
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#home-assistant-add-on-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Home Assistant add-on constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Home Assistant add-on constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#string-inputs-from-the-add-on-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        String inputs from the add-on schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normalisation-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normalisation layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#absence-is-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Absence is information
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Absence is information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-mechanism-that-enforces-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The mechanism that enforces it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#severity-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Severity model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Severity model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#escape-hatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Escape hatch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regression-corpus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regression corpus
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target layout
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Target layout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caveat-pvinstallations-has-no-local-discriminator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveat: pvinstallations has no local discriminator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequence-one-section-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequence: one section first
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sequence: one section first">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-battery_control-battery_control_expert-warn-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1 — battery_control + battery_control_expert (warn mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-decide-after-one-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2 — decide after one release
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-3-strict-by-default-add-on-reconciliation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3 — strict by default, add-on reconciliation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#not-in-this-plan-the-schema-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Not in this plan: the schema generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-costs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known costs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/MaStr/batcontrol/edit/main/docs/development/pydantic-config-migration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="migration-plan-pydantic-based-configuration-data-model">Migration plan: Pydantic-based configuration data model<a class="headerlink" href="#migration-plan-pydantic-based-configuration-data-model" title="Permanent link">&para;</a></h1>
+<p>Status: <strong>stage 1 in progress</strong> — the plan is agreed, the first section
+(<code>battery_control</code> + <code>battery_control_expert</code>) is the first pull request. Tracking issue:
+<a href="https://github.com/MaStr/batcontrol/issues/144">#144 "Move config DataModel to Pydantic"</a>.
+Every pull request of the migration references issue #144.</p>
+<p>The plan was first drafted against 0.9.x. This revision is checked against <code>main</code> at
+0.11.x: Python 3.11-3.15, Pydantic already installed, the two bugs the draft found are
+fixed, and the order is changed to <strong>one section first, in warn mode</strong>.</p>
+<h2 id="what-this-migration-is-and-is-not">What this migration is, and is not<a class="headerlink" href="#what-this-migration-is-and-is-not" title="Permanent link">&para;</a></h2>
+<p>It is <strong>not</strong> a code reduction. A full migration replaces a few hundred lines of
+imperative validation with an estimated 1,000-1,500 lines of model and normalisation
+code plus a regression corpus. The codebase gets larger.</p>
+<p>What it buys instead: <strong>roughly 180 scattered, untyped <code>config.get()</code> accesses across
+the package collapse into declarative schemas</strong>, validated once at startup, with one home
+for every default and one place where implausible values are reported. That is
+centralisation and typing, not simplification, and issue #144's "would simplify a lot of
+the code" should be read that way.</p>
+<p>The strongest argument is the class of bug that a typed model makes visible. While the
+first draft was written, two such bugs were found, both shipped and both silent:</p>
+<ul>
+<li><code>battery_control_expert.charge_rate_multiplier</code> had no effect
+  (<a href="https://github.com/MaStr/batcontrol/issues/424">#424</a>, <strong>closed</strong>). The core now reads
+  it from <code>battery_control_expert</code> and still accepts the old <code>battery_control</code> location
+  with a deprecation warning (<code>core.py</code>, block after <code>max_forecast_hours</code>).</li>
+<li><code>inverter.cache_ttl</code> never reached the MQTT inverter
+  (<a href="https://github.com/MaStr/batcontrol/issues/425">#425</a>, <strong>closed</strong>). The factory now
+  forwards it (<code>inverter/inverter.py:207</code>).</li>
+</ul>
+<p>A third class remains open and is the reason the first section is <code>battery_control</code>
+(see "Stage 1"): its five numeric values are taken via <code>.get()</code> without any check, while
+the MQTT/API setters for the same values check a range. <code>always_allow_discharge_limit: 90</code>
+instead of <code>0.9</code> starts, and Always-Allow never triggers.</p>
+<h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
+<p><code>load_config()</code> in <code>src/batcontrol/setup.py</code> does <code>yaml.safe_load()</code> plus exactly one
+check: <code>if config['pvinstallations']:</code> (<code>setup.py:70</code>) — a <em>truthiness</em> check, so an
+empty list raises <code>RuntimeError('No PV Installation found')</code>. Everything after that
+consumes a raw dictionary.</p>
+<div class="admonition note">
+<p class="admonition-title">Counting</p>
+<p><code>grep -rn "config\.get(\|config\[" --include="*.py" src/ | wc -l</code> gives 178 on
+<code>main</code>; the exact number drifts with the regex. Concentrated in
+<code>inverter/inverter.py</code> (47), <code>core.py</code> (30), <code>dynamictariff/dynamictariff.py</code> (18),
+<code>inverter/fronius.py</code> (17), <code>mqtt_api.py</code> (15) and
+<code>forecastconsumption/consumption.py</code> (13).</p>
+</div>
+<p>Since the first draft, a lot of validation has been added by hand, section by section:
+<code>value_utils.py</code> now has <code>parse_optional_ratio</code>, <code>parse_positive_number</code>,
+<code>parse_non_negative_number</code>, <code>parse_integer</code> and <code>parse_bool_config</code>, and the core uses
+them for most of <code>battery_control_expert</code>. That makes the migration smaller, not
+unnecessary: the parsers still live at the call sites, the defaults still live in the
+<code>.get(key, default)</code> calls, and unknown keys (typos) are still silently ignored.</p>
+<p><code>load_config()</code> is now covered indirectly (<code>tests/batcontrol/test_main.py</code>), but there is
+still no corpus of real configurations to test against. The regression corpus below is
+the first assurance that a model does not reject what starts today.</p>
+<p>Two components already use typed configuration objects: <code>PeakShavingConfig</code>
+(<code>logic/logic_interface.py:20</code>, a mutable dataclass validated in <code>__post_init__</code>) and
+<code>GridChargeTargetConfig</code> (<code>logic/grid_charge_target.py:15</code>, <code>frozen=True</code>).</p>
+<h2 id="the-dependency-is-already-there">The dependency is already there<a class="headerlink" href="#the-dependency-is-already-there" title="Permanent link">&para;</a></h2>
+<p>The draft's biggest risk for its first pull request was adding <code>pydantic</code> (a Rust
+extension via <code>pydantic-core</code>) to the Alpine images and the piwheels index setup. That
+risk is gone: the read-only web layer depends on <code>fastapi&gt;=0.115</code> (<code>pyproject.toml</code>), and
+<code>web/models.py</code> already defines its responses as Pydantic models. Every image that
+starts batcontrol today already imports <code>pydantic</code> 2.x. The migration adds no
+dependency and needs no new CI job for it.</p>
+<p><code>pylint</code> runs across 3.11-3.15 with <code>--fail-under 9</code> (<code>.github/workflows/pylint.yml</code>) and
+already lints <code>web/models.py</code>; no <code>pylint-pydantic</code> plugin is needed.</p>
+<p>Since the supported range is Python 3.11-3.15, models may use <code>X | None</code> at runtime.
+The draft's "no <code>X | Y</code>, CI includes 3.9" rule no longer applies.</p>
+<h2 id="home-assistant-add-on-constraints">Home Assistant add-on constraints<a class="headerlink" href="#home-assistant-add-on-constraints" title="Permanent link">&para;</a></h2>
+<p><code>entrypoint_ha.sh</code> symlinks <code>/data/options.json</code> directly as <code>batcontrol_config.yaml</code> —
+JSON is a YAML subset, so it parses, but it carries every quirk of the Supervisor options
+format. The same script has a second branch: a hand-written
+<code>addon_config/batcontrol_config.yaml</code> is used <em>instead</em>, so "running under Home
+Assistant" does <strong>not</strong> imply "HA-shaped config".</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Quirk</th>
+<th>Example</th>
+<th>Handled today in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Numbers can arrive as strings</td>
+<td><code>time_resolution_minutes: "60"</code> (from <code>list(15\|60)</code>)</td>
+<td><code>core.py:178</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Lists arrive as <code>";"</code>-separated strings</td>
+<td><code>history_days: "-7;-14;-21"</code></td>
+<td><code>consumption.py:99</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>No third nesting level in the schema</td>
+<td><code>consumption_forecast.csv.*</code> flattened to <code>consumption_forecast.*</code></td>
+<td><code>consumption.py</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Every key with a default in <code>options:</code> is always present, with a placeholder value</strong></td>
+<td><code>type: dummy</code> still ships <code>address</code>, <code>password</code></td>
+<td>nothing — presence checks only work because the placeholders are <em>values</em></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cleared optional fields become <code>""</code>, not absent</td>
+<td><code>cafile: ""</code></td>
+<td><code>value_utils.get_config_value</code>, <code>mqtt_api.configure_tls</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>The <code>pvinstallations</code> <em>schema</em> permits every solar provider's keys in one entry</td>
+<td><code>url</code>, <code>api_token</code>, <code>resource_id</code>, <code>lat</code> side by side</td>
+<td><code>forecastsolar/solar.py</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Some keys do not exist in the add-on at all</td>
+<td><code>logfile_enabled</code>, <code>logfile_path</code></td>
+<td>defaults in <code>__main__.py:75-78</code></td>
+</tr>
+</tbody>
+</table>
+<p>Two precisions:</p>
+<ul>
+<li><strong>Quirk 4 is about <code>options:</code>, not <code>schema:</code>.</strong> Keys that appear only in <code>schema:</code> are
+  genuinely absent until the user sets them (for <code>battery_control</code>: <code>min_grid_charge_soc</code>,
+  <code>grid_charge_target_strategy</code>; for <code>battery_control_expert</code>:
+  <code>market_price_refresh_time</code>). The conclusion holds: <code>extra="forbid"</code> is unusable, and
+  presence must never be read as "configured".</li>
+<li><strong>Quirk 5 already has behaviour attached.</strong> <code>mqtt_api.configure_tls</code> (shared by MQTT and
+  evcc) treats <code>cafile: ""</code> as missing and raises, and enforces that <code>certfile</code> and
+  <code>keyfile</code> are set together. An <code>EmptyStrNone</code> <code>BeforeValidator</code> must keep that meaning.</li>
+</ul>
+<p>Quirk 1 is the one that matters most in the long run; it has its own section below.</p>
+<h3 id="string-inputs-from-the-add-on-schema">String inputs from the add-on schema<a class="headerlink" href="#string-inputs-from-the-add-on-schema" title="Permanent link">&para;</a></h3>
+<p>Numeric values do not reliably arrive as numbers. Where they come from:</p>
+<ul>
+<li><strong><code>list(a|b|c)</code> always delivers a string</strong>, even if every option is a number:
+  <code>time_resolution_minutes: list(15|60)</code> arrives as <code>"60"</code>, <code>pvinstallations[].percentile:
+  list(10|50|90)</code> as <code>"50"</code>. A <code>list(...)</code> type is the only way to offer a fixed set of
+  values in the add-on UI, so every future "pick one of these numbers" field has this
+  shape.</li>
+<li><strong><code>str</code> / <code>str?</code> fields carry numbers and lists</strong> because the schema has no better type
+  for them: <code>fronius_inverter_id: str?</code> (<code>"1"</code>), <code>history_days: str?</code> (<code>"-7;-14;-21"</code>,
+  quirk 2), <code>zone_1_hours: str?</code>.</li>
+<li><strong><code>float</code> / <code>int</code> fields</strong> arrive as JSON numbers in <code>/data/options.json</code> as long as the
+  schema types them so. That is a property of the add-on schema, not of batcontrol: the
+  schema lives in another repository (<code>MaStr/batcontrol_ha_addon</code>) and changes
+  independently, and the <code>addon_config/batcontrol_config.yaml</code> branch and hand-written YAML
+  in general bypass it (<code>min_price_difference: "0.05"</code> with quotes is valid YAML).</li>
+</ul>
+<p>Today each consumer copes on its own (<code>core.py</code> for <code>time_resolution_minutes</code>,
+<code>consumption.py</code> for <code>history_days</code>, <code>value_utils.parse_*</code> for the expert values) or does
+not cope at all: <code>battery_control.min_price_difference: "0.05"</code> started and then failed
+with a <code>TypeError</code> in every control cycle. This scattered, per-call-site handling is one
+of the key reasons for the Pydantic migration: one model per section, one place where a
+string becomes a number.</p>
+<p><strong>Policy, binding for every section of the migration: a numeric string is a number.</strong>
+<code>"0.05"</code>, <code>" 5 "</code> and <code>"60"</code> are accepted and coerced to the field's number type, in
+<code>warn</code> and <code>strict</code> mode alike, without a warning (a debug log line at most). Only a
+string that is not a number (<code>"abc"</code>, <code>"0,05"</code>, <code>"nan"</code>) stays an error naming the
+key. An empty string <code>""</code> is an error only for a field that must hold a number (all
+numeric fields of stage 1: an empty value replaces the default the core would use); for
+an optional field, quirk 5 (<code>EmptyStrNone</code>, a cleared add-on field) decides and <code>""</code>
+means "not set". Coercion only makes more configurations work, so the guard rail holds. As long as a
+section's consumers still read the dict, the coerced value is <strong>written back into the
+dict</strong> (the existing key only, never a new one), so the code after the validation reads
+numbers too. Booleans are not covered by this rule: <code>"true"</code> stays a string for a numeric
+field, and for a boolean field the existing <code>parse_bool_config</code> decides.</p>
+<p>Stage 1 implements this for <code>battery_control</code> and <code>battery_control_expert</code>
+(<code>coerce_numeric_strings()</code> in <code>config/battery_control.py</code>); later sections reuse it
+through <code>normalize.py</code>.</p>
+<h3 id="normalisation-layer">Normalisation layer<a class="headerlink" href="#normalisation-layer" title="Permanent link">&para;</a></h3>
+<p><code>config/normalize.py</code> runs <strong>before</strong> validation: generic coercions (quirks 1, 2, 3, 5)
+as unconditional <code>BeforeValidator</code>s — idempotent and harmless for hand-written YAML — and
+type-dependent pruning (quirks 4, 6) once the discriminator is known. It is only needed
+from the inverter/utility/consumption sections on, so it does not ship in stage 1; stage 1
+only carries the numeric-string coercion of its two sections (see above), which moves
+there with the first add-on-heavy section.</p>
+<p><strong>Hard constraint: <code>normalize.py</code> must never add a key it did not receive.</strong> See
+"Absence is information" below.</p>
+<p><code>BATCONTROL_RUNTIME_ENV</code> exists (<code>Dockerfile</code>, add-on Dockerfiles) and is read by
+<code>web/service.py</code> for the API's runtime info. Reuse it if messages should mention add-on
+UI field names — but remember the <code>addon_config</code> branch, where the value says "add-on"
+while the config is hand-written YAML.</p>
+<h2 id="absence-is-information">Absence is information<a class="headerlink" href="#absence-is-information" title="Permanent link">&para;</a></h2>
+<p>This is the largest hazard of the migration. Sites across the codebase branch on whether
+a key was <em>written</em>, not on its value. Once every field exists on a model with a
+materialised default, they all change meaning.</p>
+<p>The draft's most dangerous example — peak shaving's <code>mode</code> versus the three explicit
+switches — is gone: <code>peak_shaving.mode</code> was removed and <code>PeakShavingConfig.from_config()</code>
+now rejects it with a migration hint. The switches have plain defaults. The rule stays,
+because other sites still branch on presence:</p>
+<table>
+<thead>
+<tr>
+<th>Site</th>
+<th>Formulation</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>logic/logic.py</code> <code>parse_logic_expert_settings</code> (runs every cycle)</td>
+<td><code>if attribute in expert</code></td>
+<td>must stay "only if written"</td>
+</tr>
+<tr>
+<td><code>core.py</code> <code>charge_rate_multiplier</code> (expert vs. deprecated <code>battery_control</code> location)</td>
+<td>two <code>Optional[float] = None</code></td>
+<td>identical — the deprecation warning depends on presence</td>
+</tr>
+<tr>
+<td><code>core.py</code> <code>production_offset_percent</code>, <code>preserve_min_grid_charge_soc</code>, <code>max_forecast_hours</code></td>
+<td><code>if key in expert</code></td>
+<td>identical with <code>Optional[...] = None</code></td>
+</tr>
+<tr>
+<td><code>consumption.py</code> <code>csv:</code> sub-block</td>
+<td><code>csv: CsvBlock \| None = None</code></td>
+<td>identical</td>
+</tr>
+<tr>
+<td><code>inverter/inverter.py</code> <code>max_charge_rate</code> rename, <code>cache_ttl</code> forward</td>
+<td><code>Optional[...] = None</code></td>
+<td>identical</td>
+</tr>
+<tr>
+<td><code>mqtt_api.py</code>, <code>evcc_api.py</code> credentials and <code>logger</code></td>
+<td><code>Optional[...] = None</code></td>
+<td>identical except <code>username: ""</code> → "not sent"</td>
+</tr>
+<tr>
+<td><code>dynamictariff.py</code> "ignored" warnings and zone pairing</td>
+<td><code>is None</code> comparisons</td>
+<td>identical</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>Optional[X] = None</code> <strong>only</strong> for fields a consumer branches on; everywhere else use
+a real default. The exhaustive form is a grep
+(<code>grep -rn "in config\|in ps\|not in " --include="*.py" src/</code>), re-run per pull request.</p>
+<h3 id="the-mechanism-that-enforces-it">The mechanism that enforces it<a class="headerlink" href="#the-mechanism-that-enforces-it" title="Permanent link">&para;</a></h3>
+<p>As long as models only <em>validate</em> and the code keeps reading the dict (stage 1), nothing
+is materialised. Once a section's consumers read model values, the bridge back to a dict
+is <code>model_dump(exclude_unset=True)</code>, never a plain <code>model_dump()</code>. A test enforces it: for
+every config in the regression corpus, the key set of the dumped section equals the key
+set of the input at every nesting level.</p>
+<h2 id="severity-model">Severity model<a class="headerlink" href="#severity-model" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Behaviour</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Broken structure; required field missing; value out of a range <strong>the code already enforces</strong></td>
+<td><strong>hard error</strong></td>
+<td>Already fails today, just later and with a worse message.</td>
+</tr>
+<tr>
+<td>Value of a type that the code later fails on (e.g. a string where arithmetic follows)</td>
+<td><strong>error in the log</strong> (<code>warn</code>), hard error in <code>strict</code></td>
+<td>Today it starts and fails in every control cycle; <code>warn</code> must not stop a config that starts.</td>
+</tr>
+<tr>
+<td><strong>Field that nothing validates today</strong></td>
+<td><strong>no new constraint</strong>; implausible values warn</td>
+<td>Where the guard rail is actually at risk.</td>
+</tr>
+<tr>
+<td>Unknown key (typo)</td>
+<td><strong>warning</strong></td>
+<td>Silently ignored today.</td>
+</tr>
+<tr>
+<td>Deprecated key (<code>battery_control.charge_rate_multiplier</code>, <code>inverter.max_charge_rate</code>, <code>utility.type: energyforecast_96</code>)</td>
+<td><strong>warning + automatic migration</strong></td>
+<td>Already warns or renames today.</td>
+</tr>
+<tr>
+<td>Coercion required (<code>"60"</code>, <code>";"</code>-lists, <code>""</code>)</td>
+<td><strong>repair silently</strong></td>
+<td>The Home Assistant normal case.</td>
+</tr>
+<tr>
+<td>Plausibility (<code>min_grid_charge_soc &gt; max_charging_from_grid_limit</code>; inverter <code>max_soc</code> below <code>always_allow_discharge_limit</code>; <code>min_pv_charge_rate &gt; max_pv_charge_rate</code>)</td>
+<td><strong>warning</strong></td>
+<td>Matches the existing warnings in <code>core.py</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Binding guard rail: every configuration that starts successfully today must still start
+successfully, and must produce the same control behaviour.</strong> One deliberate exception,
+decided by the maintainer: <code>always_allow_discharge_limit</code> of 0 or below stops startup,
+because it switches the whole control off (see stage 1).</p>
+<p>The guard rail is fragile in one direction — inventing constraints that feel obviously
+right. Traps found while reviewing this plan:</p>
+<ol>
+<li><strong>The add-on <code>schema:</code> ranges are not a source of truth.</strong> They are stricter than the
+   code in places and wrong in others (<code>pvinstallations[].lon: float(,90)?</code> rejects
+   everything east of 90°E).</li>
+<li><strong>Model defaults come from the code's <code>.get(key, default)</code> calls, not from either YAML
+   file.</strong> Ship a table test mapping every replaced <code>.get(key, default)</code> to its model
+   field and asserting equality.</li>
+<li><strong><code>Literal</code> is case-sensitive; the code is not.</strong> <code>battery_control.type</code> is lowercased
+   in <code>logic/logic.py:57</code>, the utility, inverter, consumption and solar factories do the
+   same. <code>type: awattar_DE</code> starts today and must keep starting.</li>
+<li><strong><code>loglevel</code></strong> falls back silently (<code>__main__.py:94</code>); a <code>Literal[...]</code> would
+   hard-error.</li>
+<li><strong><code>battery_control</code>'s five numeric fields</strong> have no range check today — stage 1 adds
+   warnings, not errors.</li>
+<li><strong><code>pvinstallations: []</code></strong> raises in <code>load_config()</code> but passes <code>Batcontrol.__init__()</code>;
+   test fixtures rely on that.</li>
+<li><strong><code>tls: "true"</code> flips behaviour silently.</strong> <code>configure_tls</code> uses <code>is not True</code>, so a
+   string leaves TLS off today; lax coercion would switch it on.</li>
+<li><strong>Lax coercion repairs what crashes today - only if the dict is repaired too.</strong>
+   <code>min_price_difference: "0.05"</code> passes a lax <code>float</code> field, but the code reads the raw
+   string and fails with <code>TypeError</code> in the first calculation. As long as the code reads
+   the dict, a model that accepts a numeric string must write the number back into the
+   dict (see "String inputs from the add-on schema"); a model that only validates would
+   hide the crash.</li>
+</ol>
+<h3 id="escape-hatch">Escape hatch<a class="headerlink" href="#escape-hatch" title="Permanent link">&para;</a></h3>
+<p>The add-on builds and runs the image on the user's own machine. A new hard error at
+startup exits the container: the add-on does not start, the user must fix YAML through
+the Supervisor UI, and the battery is uncontrolled meanwhile.</p>
+<p>So the environment variable <strong><code>BATCONTROL_CONFIG_VALIDATION=warn|strict</code></strong> defaults to
+<code>warn</code>:</p>
+<ul>
+<li><code>warn</code>: validation problems are logged (implausible values as warnings, values the code
+  will fail on as errors) and startup continues on the existing code path, which raises
+  exactly where it raised before.</li>
+<li><code>strict</code>: values the code cannot use stop batcontrol at startup with a message that
+  names the key. Plausibility findings stay warnings.</li>
+</ul>
+<p>An unknown value falls back to <code>warn</code> with a warning. <code>strict</code> becomes the default at the
+earliest after a release with field experience of <code>warn</code>.</p>
+<h3 id="regression-corpus">Regression corpus<a class="headerlink" href="#regression-corpus" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>config/batcontrol_config_dummy.yaml</code> (also the first-run template) must validate with
+  no warning and no error.</li>
+<li>The fenced YAML examples of a section in <code>docs/</code> must validate with no warning and no
+  error. They are fragments, so they validate against the section model, not a whole
+  configuration.</li>
+<li>The committed <code>options:</code> block of the add-on's <code>batcontrol-development/config.yaml</code> is
+  what the Supervisor writes for a default install. A vendored copy plus a sync check
+  joins the corpus once the add-on-heavy sections (inverter, utility, consumption) are
+  migrated.</li>
+</ul>
+<h2 id="target-layout">Target layout<a class="headerlink" href="#target-layout" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>src/batcontrol/config/
+  __init__.py        # public entry points
+  validation.py      # mode switch (BATCONTROL_CONFIG_VALIDATION), logging, the hook
+  battery_control.py # battery_control, battery_control_expert          (stage 1)
+  normalize.py       # Home Assistant quirks, one documented block each  (stage 2+)
+  common.py          # shared BeforeValidator types                      (stage 2+)
+  general.py         # timezone, time_resolution_minutes, logging
+  inverter.py        # dummy | fronius_gen24 | fronius-modbus | mqtt, single or list
+  utility.py         # awattar_at | awattar_de | tibber | evcc | energyforecast | ...
+  solar.py           # pvinstallations per provider (see caveat)
+  consumption.py     # csv | homeassistant-api, both nesting forms
+  messaging.py       # mqtt, evcc
+</code></pre></div>
+<h3 id="caveat-pvinstallations-has-no-local-discriminator">Caveat: <code>pvinstallations</code> has no local discriminator<a class="headerlink" href="#caveat-pvinstallations-has-no-local-discriminator" title="Permanent link">&para;</a></h3>
+<p>The provider is selected by the <strong>sibling top-level key <code>solar_forecast_provider</code></strong>, which
+<code>Field(discriminator=...)</code> cannot express; it needs a root <code>model_validator(mode="before")</code>
+or <code>ValidationInfo.context</code>. Cardinality also differs per provider (evcc requires exactly
+one entry, Home Assistant ML reads only the first, forecast.solar iterates all).</p>
+<h2 id="sequence-one-section-first">Sequence: one section first<a class="headerlink" href="#sequence-one-section-first" title="Permanent link">&para;</a></h2>
+<p>The draft proposed nine pull requests that build the whole infrastructure (corpus,
+normalisation, every model) before the application uses any of it. The revised order
+proves the pattern on one section, ships it in <code>warn</code> mode and only then decides how to
+continue.</p>
+<h3 id="stage-1-battery_control-battery_control_expert-warn-mode">Stage 1 — <code>battery_control</code> + <code>battery_control_expert</code> (warn mode)<a class="headerlink" href="#stage-1-battery_control-battery_control_expert-warn-mode" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Hook:</strong> <code>Batcontrol.__init__</code> calls the validator right after the <code>time_resolution_minutes</code>
+  and <code>timezone</code> checks, before any provider or inverter is created. At that point logging
+  is configured with the user's loglevel and logfile, so — unlike validating inside
+  <code>load_config()</code> — the messages reach the logfile. It runs before the inverter because
+  the inverter constructors already write to the device (Fronius: Solar API, time-of-use
+  backup, grid charging); a configuration that stops startup must not leave the inverter
+  changed without restoring it. Only the <code>max_soc</code> cross-check needs the inverter; it runs
+  separately after <code>create_inverters()</code> (<code>warn_unreachable_always_allow()</code>) and only warns.</li>
+<li><strong>Stopping messages are logged before the raise.</strong> Every message that stops startup is
+  logged at <code>CRITICAL</code> with the <code>[Config]</code> prefix, so it reaches the logfile, then
+  <code>ConfigValidationError</code> (a <code>ValueError</code>) is raised. <code>__main__</code> catches it and exits with
+  code 1 without a traceback. When startup stops, the other errors are logged without the
+  <code>warn</code> hint "not stopping here".</li>
+<li><strong>No change to the accesses.</strong> The models only validate; the core keeps reading the
+  dict exactly as before. Defaults in the models mirror the <code>.get()</code> defaults of the core.</li>
+<li>
+<p><strong>New limits are warnings only</strong>, using the ranges the MQTT/API setters already apply:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Warns when</th>
+<th>Setter it mirrors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>always_allow_discharge_limit</code></td>
+<td>above 1 (e.g. <code>90</code> instead of <code>0.9</code>); 0 and below are fatal, see below</td>
+<td><code>api_set_always_allow_discharge_limit</code></td>
+</tr>
+<tr>
+<td><code>max_charging_from_grid_limit</code></td>
+<td>outside 0..1</td>
+<td><code>api_set_max_charging_from_grid_limit</code></td>
+</tr>
+<tr>
+<td><code>min_price_difference</code></td>
+<td>below 0</td>
+<td><code>api_set_min_price_difference</code></td>
+</tr>
+<tr>
+<td><code>min_price_difference_rel</code></td>
+<td>below 0</td>
+<td><code>api_set_min_price_difference_rel</code></td>
+</tr>
+<tr>
+<td><code>min_recharge_amount</code></td>
+<td>below 0</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>battery_control_expert.round_price_digits</code></td>
+<td>below 0 (rounds every price to 0)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>battery_control_expert.production_offset_percent</code></td>
+<td>above 2.0</td>
+<td><code>api_set_production_offset</code></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p><strong>Numeric strings</strong> (<code>"0.05"</code>, <code>" 5 "</code>) in the numeric fields of both sections are
+  coerced and written back to the dict, in both modes and without a message (debug log
+  only), see "String inputs from the add-on schema".</p>
+</li>
+<li><strong>Type problems</strong> in the five unvalidated numeric fields (a non-numeric string, an empty
+  value) are logged as errors in <code>warn</code> and stop startup in <code>strict</code>; today they start and
+  fail in every control cycle. A boolean is only a warning: it is an <code>int</code> subclass and every
+  consumer computes with it as 0 or 1 today. Fields that the core already parses at startup keep
+  their existing hard errors, the model reports them with the same parser.</li>
+<li><strong><code>always_allow_discharge_limit</code> of 0 or below stops startup in every mode</strong>
+  (maintainer decision). It allows discharging at every SoC, so the price based control
+  never runs; <code>false</code> is used as <code>0</code> and a negative value (also as a numeric string,
+  <code>"-0.1"</code>) acts the same, both stop it as well. This is the one deliberate exception to
+  the guard rail. Values above 1 stay warnings. The MQTT/API setter
+  (<code>api_set_always_allow_discharge_limit</code>) rejects 0 at runtime as well and keeps the
+  current value; the Home Assistant number entity starts at 0.01 (step 0.01, so whole
+  percentages from evcc stay valid states). The evcc path
+  (<code>set_always_allow_discharge_limit</code>, from <code>bufferSoc</code>) is unchanged and can still set
+  0, which the Home Assistant entity cannot show. A negative infinity string (<code>"-inf"</code>)
+  stops startup like any other value below 0.</li>
+<li><strong>Unknown keys</strong> in both sections are warned about (typos are silently ignored today).</li>
+<li><strong>Cross-check:</strong> inverter <code>max_soc</code> below <code>always_allow_discharge_limit</code> warns, because
+  the Always-Allow SoC can never be reached — analogous to the existing warning for
+  <code>min_grid_charge_soc</code> above <code>max_charging_from_grid_limit</code>. A limit of <code>1.0</code> or above
+  is silent: Always-Allow is deliberately off.</li>
+<li><code>time_resolution_minutes</code> is validated first in <code>Batcontrol.__init__</code>, before any
+  provider or inverter exists (<code>config.general.parse_time_resolution</code>). Numeric strings
+  (<code>"15"</code> from the add-on <code>list(15|60)</code> schema, <code>" 15 "</code>) use the same parsing as the
+  coercion above and become an <code>int</code>, which is written back to the dict; anything else
+  than 15 or 60 is a <code>ValueError</code> naming the key and the allowed values. Before, a
+  non-numeric string failed with a bare <code>invalid literal for int()</code> and <code>15.0</code> slipped
+  through as a float.</li>
+<li><strong>Tests:</strong> dummy config and the doc examples of the two sections validate without any
+  message; one test per limit for its warning; both modes; the env switch; numeric
+  strings are written back and reach the core as numbers; <code>always_allow_discharge_limit</code>
+  of 0 or below stops startup in both modes.</li>
+</ul>
+<h3 id="stage-2-decide-after-one-release">Stage 2 — decide after one release<a class="headerlink" href="#stage-2-decide-after-one-release" title="Permanent link">&para;</a></h3>
+<p>Field reports from stage 1 decide whether the pattern holds. The next sections follow the
+same shape, roughly in order of risk: <code>general</code> (<code>timezone</code>, <code>time_resolution_minutes</code>,
+logging), <code>mqtt</code> + <code>evcc</code>, <code>peak_shaving</code> (bridge <code>PeakShavingConfig</code> without changing its
+<code>__post_init__</code> semantics), <code>utility</code>, <code>inverter</code> (single and list form), <code>solar</code> and
+<code>consumption</code>. The normalisation layer and the add-on options corpus arrive with the first
+add-on-heavy section. Each section is its own pull request, in <code>warn</code> mode first.</p>
+<p>Points to settle when a section's consumers start reading the model instead of the dict:</p>
+<ul>
+<li><strong><code>model_copy()</code> is not a drop-in for <code>dataclasses.replace()</code>.</strong> <code>replace()</code> re-runs
+  <code>__post_init__</code>; <code>model_copy(update=...)</code> validates nothing. The MQTT setters for peak
+  shaving rely on that validation.</li>
+<li><strong>Do not use <code>strict=True</code> to reject booleans.</strong> <code>strict=True</code> also rejects <code>"0.05"</code>,
+  which <code>PeakShavingConfig.from_config()</code> converts with <code>float()</code> today. Use a
+  <code>BeforeValidator</code> that rejects only <code>bool</code>.</li>
+<li><strong><code>evcc.loadpoint_topic</code></strong> must keep accepting a bare string and a list
+  (<code>evcc_api.py:104-107</code>).</li>
+<li><strong>Separating configuration from runtime state</strong> (<code>register_set_callback</code> sites mutate
+  config-derived attributes at runtime) stays out of scope.</li>
+</ul>
+<h3 id="stage-3-strict-by-default-add-on-reconciliation">Stage 3 — strict by default, add-on reconciliation<a class="headerlink" href="#stage-3-strict-by-default-add-on-reconciliation" title="Permanent link">&para;</a></h3>
+<p>Only after <code>warn</code> has run without false positives for a release: <code>strict</code> as the default,
+and the add-on <code>schema:</code> aligned to the same limits (for example
+<code>always_allow_discharge_limit: float(0,1)</code> still admits the rejected <code>0</code>) (in <code>MaStr/batcontrol_ha_addon</code>,
+against <code>batcontrol-development/</code> first, with a <code>version:</code> bump and changelog entry).</p>
+<h3 id="not-in-this-plan-the-schema-generator">Not in this plan: the schema generator<a class="headerlink" href="#not-in-this-plan-the-schema-generator" title="Permanent link">&para;</a></h3>
+<p>Generating the add-on <code>options:</code>/<code>schema:</code> from the models is cut: the Supervisor schema
+has no discriminated unions, so the generated schema would be strictly weaker than the
+models. A test that validates the vendored add-on <code>options:</code> block against the models
+catches the drift at a fraction of the cost.</p>
+<p><strong>Documentation is a per-PR deliverable, not a phase.</strong> Every pull request that changes
+startup behaviour or a parameter's meaning updates the matching page under <code>docs/</code>.</p>
+<h2 id="known-costs">Known costs<a class="headerlink" href="#known-costs" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>The codebase grows.</strong> See the opening section.</li>
+<li><strong>Test fixtures break once consumers read models.</strong> <code>tests/batcontrol/test_core.py</code>
+  fixtures use minimal or mocked sections. Remedy: a valid base configuration that
+  fixtures override, following <code>tests/batcontrol/logic/helpers.py</code> and
+  <code>tests/conftest.py</code>.</li>
+<li><strong>More log output for existing users.</strong> Configurations that pass silently today start
+  emitting warnings. That is the point; the severity model keeps them warnings so no
+  running installation stops at an update.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../mcp-evaluation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: MCP Evaluation">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                MCP Evaluation
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../threading/" class="md-footer__link md-footer__link--next" aria-label="Next: Threading and Control Lock">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Threading and Control Lock
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.footer", "content.action.edit", "content.code.copy", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../assets/js/vendor/chart.umd.js"></script>
+      
+        <script src="../../assets/js/peak-shaving-charts.js"></script>
+      
+    
+  </body>
+</html>

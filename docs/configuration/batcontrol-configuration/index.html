@@ -620,6 +620,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#configuration-check-at-startup-with-0111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration check at startup (with 0.11.1)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1485,6 +1496,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/pydantic-config-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Config Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/threading/" class="md-nav__link">
         
   
@@ -1642,6 +1681,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#configuration-check-at-startup-with-0111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration check at startup (with 0.11.1)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1732,7 +1782,7 @@ Amount of logsize bevore a logswitch is applied. The logs switches from log.1 to
   min_recharge_amount: 100          
 </code></pre></div>
 Details about the Price configuration can be found on <a href="../../features/price-difference-calculation/">price difference calculation</a> page.
-<code>always_allow_discharge_limit</code> &amp; <code>max_charging_from_grid_limit</code> is explained <a href="../../getting-started/how-batcontrol-works/">here</a>.</p>
+<code>always_allow_discharge_limit</code> &amp; <code>max_charging_from_grid_limit</code> is explained <a href="../../getting-started/how-batcontrol-works/">here</a>. <code>always_allow_discharge_limit: 0</code> (or a negative value) is rejected at startup: it would allow discharging at every SoC, so batcontrol would never control anything. <code>1.0</code> allows discharging freely only at a full battery.</p>
 <p><img alt="Picture of different parameters on battery soc" src="../../assets/battery_limits_parameter.png" /></p>
 <p><code>min_grid_charge_soc</code> is optional. When set as a ratio, for example <code>0.55</code>, it is a minimum SoC that batcontrol secures from the grid <strong>independent of the forecast demand</strong>. Leave it unset to keep the default behavior.</p>
 <p>Without it, batcontrol only recharges the energy the upcoming expensive slots are expected to need, minus what is already stored. With it, every economical grid-charging opportunity charges the battery at least up to this SoC:</p>
@@ -1829,6 +1879,70 @@ Details about the Price configuration can be found on <a href="../../features/pr
 </tr>
 </tbody>
 </table>
+<h2 id="configuration-check-at-startup-with-0111">Configuration check at startup (with 0.11.1)<a class="headerlink" href="#configuration-check-at-startup-with-0111" title="Permanent link">&para;</a></h2>
+<p>At startup batcontrol checks <code>battery_control</code> and <code>battery_control_expert</code> and reports its findings in the log, with the prefix <code>[Config]</code>. This is the first step of moving the configuration to typed models (<a href="../../development/pydantic-config-migration/">plan</a>); the other sections follow later.</p>
+<p><strong>Warnings</strong> - the value is used as before, but it is very likely wrong:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Warning when</th>
+<th>Typical cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>always_allow_discharge_limit</code></td>
+<td>above 1</td>
+<td><code>90</code> instead of <code>0.90</code> - Always-Allow would never trigger (0 and below stop startup, see below)</td>
+</tr>
+<tr>
+<td><code>max_charging_from_grid_limit</code></td>
+<td>outside 0..1</td>
+<td><code>80</code> instead of <code>0.80</code></td>
+</tr>
+<tr>
+<td><code>min_price_difference</code>, <code>min_price_difference_rel</code></td>
+<td>below 0</td>
+<td></td>
+</tr>
+<tr>
+<td><code>min_recharge_amount</code></td>
+<td>below 0</td>
+<td></td>
+</tr>
+<tr>
+<td><code>battery_control_expert.round_price_digits</code></td>
+<td>below 0</td>
+<td>a negative value rounds every price to 0, so no grid charging happens</td>
+</tr>
+<tr>
+<td><code>battery_control_expert.production_offset_percent</code></td>
+<td>above 2.0</td>
+<td><code>80</code> instead of <code>0.8</code>; MQTT and the API accept only 0..2</td>
+</tr>
+<tr>
+<td>inverter <code>max_soc</code></td>
+<td>below <code>always_allow_discharge_limit</code> (not checked for <code>1.0</code> and above)</td>
+<td>the battery never reaches the SoC above which discharging is always allowed</td>
+</tr>
+<tr>
+<td>any key the two sections do not know</td>
+<td>always</td>
+<td>a typo, e.g. <code>production_ofset_percent</code>, which batcontrol would otherwise ignore silently</td>
+</tr>
+</tbody>
+</table>
+<p>The ranges are the same ones that the MQTT/API setters already enforce.</p>
+<p><strong>Numbers given as text</strong> are accepted: <code>"0.05"</code> (in quotes) or <code>" 60 "</code> is used as the number. The Home Assistant add-on delivers some numbers that way. This applies to all numeric keys of both sections and needs no action; it is not reported.</p>
+<p><strong>Errors</strong> - values batcontrol cannot use, for example a text that is not a number such as <code>"abc"</code> or <code>"0,05"</code> for <code>min_price_difference</code>, or an empty value. Values that already stopped batcontrol before (for example <code>round_price_digits: four</code>) still stop it with the same message.</p>
+<p><strong>Always stops startup</strong>, independent of the mode below: <code>always_allow_discharge_limit</code> of <code>0</code> or below (e.g. <code>-0.1</code>, also given as text). With it discharging is always allowed and the price based control never runs. <code>false</code> counts as <code>0</code> here. The MQTT/API setter rejects <code>0</code> as well and keeps the current value. Batcontrol logs the reason (level <code>CRITICAL</code>, prefix <code>[Config]</code>) and exits with code 1 before it connects to the inverter, so the inverter settings stay untouched.</p>
+<p>The environment variable <code>BATCONTROL_CONFIG_VALIDATION</code> controls how errors are handled:</p>
+<ul>
+<li><code>warn</code> (default): errors are logged, batcontrol starts as it did before. A configuration that started with an earlier version keeps starting.</li>
+<li><code>strict</code>: batcontrol stops at startup with a message that names the key. Warnings stay warnings.</li>
+</ul>
+<p><code>time_resolution_minutes</code> is checked before anything else is set up. Only <code>15</code> and <code>60</code> are accepted, also as text (<code>"15"</code>, as the Home Assistant add-on delivers it, or <code>" 15 "</code>). Any other value, or a text that is not a number (e.g. <code>"quarter"</code>), stops startup with a message that names the key and the allowed values.</p>
 
 
 

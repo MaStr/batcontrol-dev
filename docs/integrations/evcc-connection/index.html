@@ -1767,6 +1767,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/pydantic-config-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pydantic Config Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/threading/" class="md-nav__link">
         
   
@@ -2422,6 +2450,8 @@ missing file (e.g. <code>evcc: certfile not found or not a file: /etc/ssl/certs/
 <h3 id="buffer-soc-optional">Buffer SOC (Optional)<a class="headerlink" href="#buffer-soc-optional" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>evcc/site/bufferSoc</code> - Dynamic discharge threshold (integer 0-100)</li>
+<li><code>0</code> would allow discharging at every SoC, so batcontrol uses <code>1</code> (1 %) instead and logs a warning.</li>
+<li>Values outside 0-100 are ignored with a warning; the current limit stays.</li>
 </ul>
 <h2 id="behavior-during-ev-charging">Behavior During EV Charging<a class="headerlink" href="#behavior-during-ev-charging" title="Permanent link">&para;</a></h2>
 <h3 id="when-charging-starts">When Charging Starts<a class="headerlink" href="#when-charging-starts" title="Permanent link">&para;</a></h3>

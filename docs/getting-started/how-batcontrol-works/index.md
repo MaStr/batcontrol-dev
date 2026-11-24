@@ -127,6 +127,7 @@ Based on the forecasts and current battery state, batcontrol puts your inverter 
 
 - Above this SOC, battery always discharges freely
 - Prevents over-charging and ensures availability
+- `0` is rejected at startup, it would switch the price based control off
 
 **`max_charging_from_grid_limit`** (default: 80%)
 
