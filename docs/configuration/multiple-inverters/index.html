@@ -2000,7 +2000,11 @@ unreachable, that inverter's wrapper reports the outage and batcontrol skips the
 control cycle — it does not keep controlling the remaining batteries on a partial
 picture, because the aggregated SoC would be wrong.</p>
 <p><code>refresh_api_values</code> (MQTT publishing) and <code>shutdown</code> are best-effort: a failing
-inverter is logged and the remaining ones are still served.</p>
+inverter is logged and the remaining ones are still served. A failed MQTT refresh
+only shows up in the debug log. A failed <code>shutdown</code> is logged as an <code>ERROR</code> naming
+the inverter (<code>Inverter &lt;n&gt; (&lt;type&gt;): 'shutdown' failed, inverter settings may not
+have been restored: ...</code>), because that inverter may still run on batcontrol's
+settings.</p>
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Commands are not transactional.</strong> If an inverter fails midway through a group
